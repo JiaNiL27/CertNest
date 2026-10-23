@@ -58,6 +58,21 @@ describe("proxy", () => {
     expect(new URL(res.headers.get("location")!, BASE).pathname).toBe("/login");
   });
 
+  it("redirects anonymous M2 routes and file access to /login", async () => {
+    for (const path of [
+      "/certificates",
+      "/certificates/new",
+      "/certificates/00000000-0000-0000-0000-000000000000/edit",
+      "/api/files?id=00000000-0000-0000-0000-000000000000",
+    ]) {
+      const res = await fetch(`${BASE}${path}`, { redirect: "manual" });
+      expect([302, 303, 307, 308], path).toContain(res.status);
+      expect(new URL(res.headers.get("location")!, BASE).pathname, path).toBe("/login");
+    }
+    const upload = await fetch(`${BASE}/api/files`, { method: "POST", redirect: "manual" });
+    expect([302, 303, 307, 308]).toContain(upload.status);
+  });
+
   it("serves /login without a session", async () => {
     const res = await fetch(`${BASE}/login`, { redirect: "manual" });
     expect(res.status).toBe(200);

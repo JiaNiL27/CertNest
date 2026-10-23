@@ -21,3 +21,4 @@
 每完成一个里程碑，在这里更新一行：日期、里程碑、结果、遗留问题。
 
 - 2026-10-23 M1 地基：骨架、Auth、5 个 migration 已推到 certnest-dev，DB 测试 42/42、App 测试 3/3 通过。遗留：注册/验证邮箱/重设密码需人工测试；尚未 commit；Next 16.4 默认开 Cache Components，读 cookie/searchParams 的部分要包 Suspense。
+- 2026-10-23 M2 证书管理：新增/编辑/删除、上传下载（/api/files，magic bytes、10MB、sharp 去 EXIF）、证书库、Dashboard 分页、UI 换成青绿主题。Unit+DB 71/71、App 4/4 通过，浏览器实测新增/上传/删除正常。无新 migration。已通过审核。卡片不显示技能、点击暂不跳转（详情页 M3）。遗留：`skills` 表不清理已无人使用的技能。

@@ -47,9 +47,18 @@ Tests run against certnest-dev and refuse to start if `.env.local` points anywhe
 throwaway confirmed users through the admin API (no email is sent) and delete them afterwards.
 
 ```bash
-npm run test:db    # RLS, storage, constraints, ensure_skills
-npm run test:app   # next build, then: no service role key in .next/static, /dashboard redirects to /login
-npm test           # both
+npm run test:unit  # file type detection, EXIF stripping, form validation (no network besides the env check)
+npm run test:db    # RLS, storage, constraints, ensure_skills, uploads/downloads/deletes, library queries
+npm run test:app   # next build, then: no service role key in .next/static, protected routes redirect to /login
+npm test           # all three
 ```
+
+## Files
+
+Uploads go through `POST /api/files` (multipart: `certificate_id`, `original`, `badge`); the owner
+downloads via `GET /api/files?id=…`, which redirects to a 60-second signed URL. File types are
+detected from magic bytes (PDF, PNG, JPEG, WebP), the limit is 10 MB per file, and images are
+re-encoded with `sharp` to strip EXIF/GPS metadata. Each certificate keeps at most one original file
+and one badge image; an image original without a badge image also gets a separate badge copy.
 
 Other checks: `npm run typecheck`, `npm run lint`.

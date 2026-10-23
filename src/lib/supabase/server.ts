@@ -1,11 +1,15 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { getPublicSupabaseEnv } from "./env";
 
 // Server client bound to the current user's session cookies.
 // Always confirm identity with supabase.auth.getUser() before acting.
 export async function createClient() {
+  // User-session data is per request: never prerender or prefetch-cache it.
+  // (Supabase reads the clock while validating the session.)
+  await connection();
   const cookieStore = await cookies();
   const { url, anonKey } = getPublicSupabaseEnv();
 
