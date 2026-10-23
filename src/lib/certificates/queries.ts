@@ -12,29 +12,30 @@ export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "title", label: "Title (A–Z)" },
 ];
 
-export type CertificateSummary = {
+type SummaryFields = {
   id: string;
   title: string;
   issuer_name: string;
   issued_at: string | null;
   created_at: string;
+  credential_url: string | null;
+  expiration_status: "has_date" | "never" | "unknown";
+  expires_at: string | null;
+};
+
+export type CertificateSummary = SummaryFields & {
   skills: string[];
   badgeFileId: string | null;
 };
 
 type FileRow = { id: string; kind: string; created_at: string };
-type SummaryRow = {
-  id: string;
-  title: string;
-  issuer_name: string;
-  issued_at: string | null;
-  created_at: string;
+type SummaryRow = SummaryFields & {
   certificate_skills: { skills: { name: string } | null }[];
   certificate_files: FileRow[];
 };
 
 const SUMMARY_COLUMNS =
-  "id, title, issuer_name, issued_at, created_at, certificate_skills(skills(name)), certificate_files(id, kind, created_at)";
+  "id, title, issuer_name, issued_at, created_at, credential_url, expiration_status, expires_at, certificate_skills(skills(name)), certificate_files(id, kind, created_at)";
 
 function latestFileId(files: FileRow[], kind: string) {
   return (
@@ -44,18 +45,14 @@ function latestFileId(files: FileRow[], kind: string) {
   );
 }
 
-function toSummary(row: SummaryRow): CertificateSummary {
+function toSummary({ certificate_skills, certificate_files, ...row }: SummaryRow): CertificateSummary {
   return {
-    id: row.id,
-    title: row.title,
-    issuer_name: row.issuer_name,
-    issued_at: row.issued_at,
-    created_at: row.created_at,
-    skills: row.certificate_skills
+    ...row,
+    skills: certificate_skills
       .map((cs) => cs.skills?.name)
       .filter((n): n is string => !!n)
       .sort((a, b) => a.localeCompare(b)),
-    badgeFileId: latestFileId(row.certificate_files, "badge_image"),
+    badgeFileId: latestFileId(certificate_files, "badge_image"),
   };
 }
 

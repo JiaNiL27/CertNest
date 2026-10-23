@@ -53,6 +53,14 @@ npm run test:app   # next build, then: no service role key in .next/static, prot
 npm test           # all three
 ```
 
+## Badge details and status
+
+Clicking a card opens Badge Details in a dialog (same URL); `/certificates/[id]` shows the same view
+as a full page. Display rules live in `src/lib/certificates/display.ts`: status is
+"Expires {date}", "Expired" (from the day after `expires_at`, UTC), "Does not expire" or
+"Status unknown", plus "Issuer link available" when a credential URL exists. CertNest never shows
+"Verified" because certificate data is self-reported. Missing fields show "Not provided".
+
 ## Files
 
 Uploads go through `POST /api/files` (multipart: `certificate_id`, `original`, `badge`); the owner

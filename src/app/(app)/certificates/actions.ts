@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { todayUtc } from "@/lib/certificates/display";
+import { getCertificate } from "@/lib/certificates/queries";
 import { fieldSources, parseCertificateForm } from "@/lib/certificates/schema";
 import { setCertificateSkills } from "@/lib/certificates/skills";
 import { FileError, deleteCertificate, deleteCertificateFile } from "@/lib/files/service";
@@ -71,6 +73,13 @@ export async function saveCertificate(
     return { ok: true, id, warning: "Saved, but your skills could not be updated." };
   }
   return { ok: true, id };
+}
+
+/** Owner-only details for the Badge Details dialog; null when missing or not owned. */
+export async function getCertificateDetails(certificateId: string) {
+  const supabase = await createClient();
+  const certificate = await getCertificate(supabase, certificateId);
+  return certificate ? { certificate, today: todayUtc() } : null;
 }
 
 export async function deleteCertificateAction(certificateId: string) {

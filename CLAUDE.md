@@ -22,3 +22,4 @@
 
 - 2026-10-23 M1 地基：骨架、Auth、5 个 migration 已推到 certnest-dev，DB 测试 42/42、App 测试 3/3 通过。遗留：注册/验证邮箱/重设密码需人工测试；尚未 commit；Next 16.4 默认开 Cache Components，读 cookie/searchParams 的部分要包 Suspense。
 - 2026-10-23 M2 证书管理：新增/编辑/删除、上传下载（/api/files，magic bytes、10MB、sharp 去 EXIF）、证书库、Dashboard 分页、UI 换成青绿主题。Unit+DB 71/71、App 4/4 通过，浏览器实测新增/上传/删除正常。无新 migration。已通过审核。卡片不显示技能、点击暂不跳转（详情页 M3）。遗留：`skills` 表不清理已无人使用的技能。
+- 2026-10-23 M3 Badge Details（已通过审核）：卡片点击弹窗（顶部 "Badge Details"、底部 Close，网址不变）+ `/certificates/[id]` 整页，状态 Expires/Expired/Does not expire/Status unknown + Issuer link available（不显示 Verified），缺失显示 Not provided，描述展开、复制 ID（含备用复制）、下载原件。Unit 18/18、DB 61/61、App 4/4 通过；浏览器实测通过，复制按钮的真实点击待人工确认。无新 migration。待 M4：公开页点证书跳到随机代码网址（如 `/b/{slug}`），版式参考用户提供的 Credly 详情页，需同步修改 PLAN「不产生新网址」一条；弹窗底部加 Share Badge 按钮。

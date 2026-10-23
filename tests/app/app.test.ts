@@ -62,6 +62,7 @@ describe("proxy", () => {
     for (const path of [
       "/certificates",
       "/certificates/new",
+      "/certificates/00000000-0000-0000-0000-000000000000",
       "/certificates/00000000-0000-0000-0000-000000000000/edit",
       "/api/files?id=00000000-0000-0000-0000-000000000000",
     ]) {

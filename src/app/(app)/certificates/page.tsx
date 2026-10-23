@@ -9,6 +9,7 @@ import {
   listIssuers,
   type SortOption,
 } from "@/lib/certificates/queries";
+import { todayUtc } from "@/lib/certificates/display";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "My certificates · CertNest" };
@@ -30,6 +31,7 @@ async function Library({ searchParams }: { searchParams: PageProps<"/certificate
     listIssuers(supabase),
   ]);
   const filtered = !!(params.q || params.issuer);
+  const today = todayUtc();
 
   return (
     <>
@@ -96,7 +98,7 @@ async function Library({ searchParams }: { searchParams: PageProps<"/certificate
           </p>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {certificates.map((c) => (
-              <CertificateCard key={c.id} certificate={c} />
+              <CertificateCard key={c.id} certificate={c} today={today} />
             ))}
           </div>
         </>

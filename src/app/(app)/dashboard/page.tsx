@@ -5,6 +5,7 @@ import { ArrowRight, Award, Plus, Sparkles } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CertificateCard } from "@/components/certnest/certificate-card";
+import { todayUtc } from "@/lib/certificates/display";
 import { getDashboardData } from "@/lib/certificates/queries";
 import { initials } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -31,6 +32,7 @@ async function DashboardContent() {
     supabase,
     user.id,
   );
+  const today = todayUtc();
 
   return (
     <>
@@ -93,7 +95,7 @@ async function DashboardContent() {
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {recent.map((c) => (
-                  <CertificateCard key={c.id} certificate={c} />
+                  <CertificateCard key={c.id} certificate={c} today={today} />
                 ))}
               </div>
             )}
