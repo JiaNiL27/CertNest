@@ -1,0 +1,8 @@
+import { createBrowserClient } from "@supabase/ssr";
+import { getPublicSupabaseEnv } from "./env";
+
+// Browser client. Uses the anon key only; all access is governed by RLS.
+export function createClient() {
+  const { url, anonKey } = getPublicSupabaseEnv();
+  return createBrowserClient(url, anonKey);
+}
