@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { checkPublicLink } from "@/lib/sharing/link-check";
 
 // Routes reachable without a session. Everything else requires login.
 const PUBLIC_PATHS = [
@@ -7,8 +8,7 @@ const PUBLIC_PATHS = [
   "/signup",
   "/reset-password",
   "/auth/callback",
-  "/p/",
-  "/b/",
+  "/link-unavailable",
 ];
 
 function isPublicPath(pathname: string) {
@@ -18,6 +18,17 @@ function isPublicPath(pathname: string) {
 }
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Public share pages never use the visitor's session. Invalid links get a
+  // real 404 here, before the page starts streaming.
+  if (pathname.startsWith("/p/") || pathname.startsWith("/b/")) {
+    if ((await checkPublicLink(pathname)) === "invalid") {
+      return NextResponse.rewrite(new URL("/link-unavailable", request.url), { status: 404 });
+    }
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -48,8 +59,6 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   if (!user && !isPublicPath(pathname)) {
     const url = request.nextUrl.clone();

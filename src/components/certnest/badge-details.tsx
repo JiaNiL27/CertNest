@@ -7,7 +7,7 @@ import {
   hasIssuerLink,
 } from "@/lib/certificates/display";
 import { formatDate, formatFileSize } from "@/lib/format";
-import { BadgeIcon } from "./badge-icon";
+import { BadgeIcon, ownerImageSrc } from "./badge-icon";
 import { CopyButton } from "./copy-button";
 import { ExpandableText } from "./expandable-text";
 import { StatusBadges } from "./status-badges";
@@ -46,7 +46,7 @@ export function BadgeDetails({
       <div className="flex justify-center md:justify-start">
         <BadgeIcon
           issuer={c.issuer_name}
-          badgeFileId={c.badge?.id ?? null}
+          imageSrc={ownerImageSrc(c.badge?.id ?? null)}
           className="size-48 md:size-52 [&>div]:text-6xl"
         />
       </div>

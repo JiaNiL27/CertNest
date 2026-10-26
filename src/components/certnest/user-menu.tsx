@@ -11,7 +11,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/app/(auth)/actions";
 
-export function UserMenu({ initials }: { initials: string }) {
+export function UserMenu({
+  initials,
+  portfolioPath,
+}: {
+  initials: string;
+  portfolioPath: string | null;
+}) {
   const router = useRouter();
   return (
     <DropdownMenu>
@@ -29,6 +35,16 @@ export function UserMenu({ initials }: { initials: string }) {
         <DropdownMenuItem onClick={() => router.push("/certificates")}>
           My certificates
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push("/settings/sharing")}>
+          Profile & sharing
+        </DropdownMenuItem>
+        {portfolioPath && (
+          <DropdownMenuItem
+            onClick={() => window.open(portfolioPath, "_blank", "noopener,noreferrer")}
+          >
+            View public portfolio
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => logout()}>Sign out</DropdownMenuItem>
       </DropdownMenuContent>

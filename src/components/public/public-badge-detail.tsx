@@ -1,0 +1,83 @@
+import { ExternalLink } from "lucide-react";
+import { BadgeIcon } from "@/components/certnest/badge-icon";
+import { ExpandableText } from "@/components/certnest/expandable-text";
+import { StatusBadges } from "@/components/certnest/status-badges";
+import { expirationState, hasIssuerLink } from "@/lib/certificates/display";
+import { formatDate } from "@/lib/format";
+import type { PublicCertificate } from "@/lib/sharing/public";
+
+// Public, read-only badge view. Only renders fields returned by the public
+// functions; there is no download, edit or owner information here. Unlike
+// the owner's view, empty sections are left out instead of "Not provided".
+export function PublicBadgeDetail({
+  certificate: c,
+  earnedBy,
+  imageSrc,
+  today,
+}: {
+  certificate: PublicCertificate;
+  earnedBy: string;
+  imageSrc: string | null;
+  today: string;
+}) {
+  const issuerLink = hasIssuerLink(c);
+
+  return (
+    <article className="grid gap-10 md:grid-cols-[18rem_1fr]">
+      <div className="flex justify-center md:justify-start">
+        <BadgeIcon
+          issuer={c.issuer_name}
+          imageSrc={imageSrc}
+          className="size-64 md:size-72 [&>div]:text-7xl"
+        />
+      </div>
+
+      <div className="flex min-w-0 flex-col gap-6">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-4xl leading-tight font-semibold">{c.title}</h1>
+          <p className="text-muted-foreground">
+            Issued by <span className="font-medium text-foreground">{c.issuer_name}</span>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Earned by <span className="font-medium text-foreground">{earnedBy}</span>
+            {c.issued_at && <> · Issued {formatDate(c.issued_at)}</>}
+          </p>
+          <StatusBadges state={expirationState(c, today)} issuerLink={issuerLink} className="mt-1" />
+        </header>
+
+        {c.description && <ExpandableText text={c.description} />}
+
+        {issuerLink && (
+          <a
+            href={c.credential_url!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-fit items-center gap-1.5 font-medium text-primary underline underline-offset-4"
+          >
+            Verify on issuer site <ExternalLink className="size-4" aria-hidden />
+          </a>
+        )}
+
+        {c.skills.length > 0 && (
+          <section className="flex flex-col gap-3">
+            <h2 className="font-sans text-base font-semibold">Skills</h2>
+            <ul className="flex flex-wrap gap-2">
+              {c.skills.map((s) => (
+                <li key={s} className="rounded-md border border-primary/25 px-3 py-1.5 text-sm text-primary">
+                  {s}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Only present when the earner chose to show it. */}
+        {c.credential_id && (
+          <p className="text-sm text-muted-foreground">
+            Credential ID: <span className="font-mono break-all text-foreground">{c.credential_id}</span>
+          </p>
+        )}
+      </div>
+    </article>
+  );
+}

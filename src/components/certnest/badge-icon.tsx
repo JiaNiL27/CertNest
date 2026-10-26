@@ -3,23 +3,27 @@ import { hueFor } from "@/lib/format";
 
 const HEXAGON = "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)";
 
-// Badge image when the owner uploaded one; otherwise a hexagon with the
-// issuer's initial in a color derived from the issuer name.
+export const ownerImageSrc = (fileId: string | null) =>
+  fileId ? `/api/files?id=${fileId}&view=1` : null;
+
+// Badge image when there is one; otherwise a hexagon with the issuer's
+// initial in a color derived from the issuer name. `imageSrc` is either the
+// owner-only file route or a public image route.
 export function BadgeIcon({
   issuer,
-  badgeFileId,
+  imageSrc,
   className,
 }: {
   issuer: string;
-  badgeFileId: string | null;
+  imageSrc: string | null;
   className?: string;
 }) {
-  if (badgeFileId) {
+  if (imageSrc) {
     return (
-      // Plain <img>: the owner-only route redirects to a short-lived signed URL.
+      // Plain <img>: both routes check access on every request.
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={`/api/files?id=${badgeFileId}&view=1`}
+        src={imageSrc}
         alt=""
         className={cn("size-20 rounded-md object-contain", className)}
       />

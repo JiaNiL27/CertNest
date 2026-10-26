@@ -1,13 +1,15 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Award, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Award, ExternalLink, Globe, Pencil, Plus, Sparkles } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CertificateCard } from "@/components/certnest/certificate-card";
 import { todayUtc } from "@/lib/certificates/display";
 import { getDashboardData } from "@/lib/certificates/queries";
 import { initials } from "@/lib/format";
+import { getPortfolioShare } from "@/lib/sharing/service";
+import { portfolioPath } from "@/lib/sharing/urls";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Dashboard · CertNest" };
@@ -28,10 +30,10 @@ async function DashboardContent() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { displayName, certificateCount, recent, skills } = await getDashboardData(
-    supabase,
-    user.id,
-  );
+  const [{ displayName, certificateCount, recent, skills }, portfolio] = await Promise.all([
+    getDashboardData(supabase, user.id),
+    getPortfolioShare(supabase),
+  ]);
   const today = todayUtc();
 
   return (
@@ -49,6 +51,25 @@ async function DashboardContent() {
               {displayName || <span className="text-muted-foreground">Display name not provided</span>}
             </h1>
             <p className="text-muted-foreground">Your certificates and skills, all in one place.</p>
+            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-primary">
+              <Link href="/settings/sharing" className="flex items-center gap-1.5">
+                <Pencil className="size-4" aria-hidden /> Edit profile
+              </Link>
+              {portfolio ? (
+                <a
+                  href={portfolioPath(portfolio.public_slug)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5"
+                >
+                  <ExternalLink className="size-4" aria-hidden /> View public portfolio
+                </a>
+              ) : (
+                <Link href="/settings/sharing" className="flex items-center gap-1.5">
+                  <Globe className="size-4" aria-hidden /> Turn on public portfolio
+                </Link>
+              )}
+            </div>
           </div>
           <div className="flex gap-3">
             <Stat label={certificateCount === 1 ? "Certificate" : "Certificates"} value={certificateCount} />

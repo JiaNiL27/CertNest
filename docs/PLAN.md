@@ -12,7 +12,7 @@
 4. 不要新增「M1 执行指令」里列出的技术栈以外的依赖套件，需要的话先问。
 5. 所有密钥只放在服务器端环境变量。`SUPABASE_SERVICE_ROLE_KEY` 和 AI API key 绝对不能有 `NEXT_PUBLIC_` 前缀，也不能被任何 client component import。
 6. 数据库的所有改动都写成 Supabase migration 文件，不要在 dashboard 上手动改。
-7. 不要编造证书资料。字段没有值就留空，由界面显示“未提供”。
+7. 不要编造证书资料。字段没有值就留空，由界面显示“未提供”。例外（2026-10-26 确认）：公开详情页只显示有值的部分，缺失的描述、技能直接不显示；公开页不列 Platform、Credential URL 表格，Credential ID 只在开启时显示一行。
 8. 回复要短，不重复我说过的话，也不重复你之前说过的内容。计划用条列，总结只写结果和需要我决定的事，不贴大段代码，除非我要求。
 9. 网站以英文为主：所有界面文字、按钮、错误讯息、空白状态、邮件模板、公开页都用英文，代码、注释、变量名也用英文。AI 生成内容默认英文，用户可以另选语言。这份文件里写的中文界面文字，实现时一律换成对应的英文，例如“未提供”是 Not provided，“此链接无效或已停用”是 This link is invalid or no longer active，Badge Status 用 Issuer link available、Expired、Status unknown，过期日期用 Does not expire 和 Expiration date not provided。
 10. 开发阶段只连接 `certnest-dev` 项目。会删除资料的指令（例如 `supabase db reset --linked`）只能对开发项目执行，而且执行前先问我。
@@ -60,7 +60,7 @@ MVP 的目标是：我自己每天会用，并且可以放心把作品集链接�
 - 每个用户可以开启一个作品集链接 `/p/{slug}`，展示所有没有被设为隐藏的证书。
 - 页面完全只读：没有编辑按钮，没有登录入口以外的导航，也不能从这个页面跳到我的任何私人页面。
 - 页面顶部显示我自己设定的展示名称，绝不显示邮箱。
-- 访客点开某张证书时，在同一页展开详情，不产生新的、含证书 id 的网址。
+- 访客点开某张证书时，跳到 `/p/{slug}/{public_id}`。`public_id` 是每张证书自动生成的随机公开代码（32 位，不是证书 id，也不是 Credential ID），作品集链接撤销或重新生成后，这些网址一并失效。（2026-10-26 修订，原为"同一页展开、不产生新网址"）
 - 我可以：开启或关闭作品集、重新生成链接（旧链接立刻失效）、把某张证书设为“不在作品集显示”、决定是否公开 Credential ID 和证书图片、用访客身份预览。
 - 默认加上 `noindex`，不让搜索引擎收录。
 
@@ -81,7 +81,7 @@ MVP 的目标是：我自己每天会用，并且可以放心把作品集链接�
 | 证书图片 | 显示 | 只在我开启时显示，经由图片路由提供 |
 | PDF 原始文件 | 显示 | 永远不公开 |
 | AI 生成的内容 | 显示 | 永远不公开 |
-| 隐藏的证书 | 显示 | 永远不公开 |
+| 隐藏的证书（hidden_from_portfolio） | 显示 | 不在作品集显示；我主动开启的单张证书链接仍可查看（2026-10-26 确认） |
 | 邮箱、user id、证书 id、存储路径、账号设置 | 部分显示 | 永远不公开 |
 
 ## 数据库 schema
@@ -116,6 +116,7 @@ certificates (
   verification_status verification_status not null default 'unverified',
   field_sources jsonb not null default '{}',       -- {"title":"user"}，预留给自动抽取
   hidden_from_portfolio boolean not null default false,
+  public_id text not null unique,                  -- M4 加入：随机 32 位 hex，只用于公开网址
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check ((expiration_status = 'has_date') = (expires_at is not null)),
@@ -226,7 +227,8 @@ generated_contents (
 
 - 关闭链接 = `is_active = false` 并写入 `revoked_at`。重新开启会产生新的 slug，旧的永远失效。
 - 无效、已撤销、不存在的 slug 一律显示同一个“此链接无效或已停用”页面，HTTP 404，不透露这个链接是否曾经存在。
-- 公开页和图片路由不做服务器缓存（`dynamic = 'force-dynamic'`），撤销后下一次请求立即失效。
+- 公开页和图片路由不做服务器缓存（`dynamic = 'force-dynamic'`），撤销后下一次请求立即失效。Next 16 开启 Cache Components 后改用 `await connection()` 达到同样效果；无效链接由 proxy 先检查并回 404（页面开始串流后状态码就固定为 200）。
+- 分享只能撤销、不能恢复：数据库 trigger 禁止把已撤销的 share 改回 active，也禁止修改 slug、拥有者和范围。
 - 已知限制：LinkedIn 等平台自己缓存的链接预览，我们无法收回。在分享对话框里提醒用户这一点。
 
 ### 其他
@@ -253,6 +255,7 @@ generated_contents (
 | `/api/files` | 是 | 上传文件，以及本人下载原始文件（route handler） | M2 |
 | `/api/ai/generate` | 是 | 生成 AI 内容，串流回传 | M5 |
 | `/p/[slug]` | 否 | 公开作品集，只读 | M4 |
+| `/p/[slug]/[publicId]` | 否 | 作品集中单张证书的公开详情页，只读 | M4 |
 | `/b/[slug]` | 否 | 单张证书公开页，只读 | M4 |
 | `/p/[slug]/img/[key]`、`/b/[slug]/img/[key]` | 否 | 公开图片串流 | M4 |
 

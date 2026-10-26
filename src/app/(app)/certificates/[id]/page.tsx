@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { BadgeDetails } from "@/components/certnest/badge-details";
+import { ShareBadgePanel } from "@/components/sharing/share-badge-panel";
 import { todayUtc } from "@/lib/certificates/display";
 import { getCertificate } from "@/lib/certificates/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -18,15 +19,20 @@ async function Details({ params }: Pick<PageProps<"/certificates/[id]">, "params
   if (!certificate) notFound();
 
   return (
-    <BadgeDetails
-      certificate={certificate}
-      today={todayUtc()}
-      actions={
-        <Link href={`/certificates/${certificate.id}/edit`} className={buttonVariants({ size: "lg" })}>
-          <Pencil aria-hidden /> Edit
-        </Link>
-      }
-    />
+    <>
+      <BadgeDetails
+        certificate={certificate}
+        today={todayUtc()}
+        actions={
+          <Link href={`/certificates/${certificate.id}/edit`} className={buttonVariants({ size: "lg" })}>
+            <Pencil aria-hidden /> Edit
+          </Link>
+        }
+      />
+      <div className="rounded-xl border p-6">
+        <ShareBadgePanel certificateId={certificate.id} />
+      </div>
+    </>
   );
 }
 

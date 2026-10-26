@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // Hard-coded on purpose: tests create and delete users, so they must never
@@ -87,3 +87,8 @@ export async function insertCertificate(user: TestUser, fields: Record<string, u
 }
 
 export const randomKey = () => randomUUID().replaceAll("-", "");
+
+// Share slugs must be 22 base62 characters.
+const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+export const randomSlug = () =>
+  Array.from(randomBytes(22), (b) => BASE62[b % 62]).join("");

@@ -2,7 +2,7 @@ import { CalendarDays } from "lucide-react";
 import type { CertificateSummary } from "@/lib/certificates/queries";
 import { expirationState, hasIssuerLink } from "@/lib/certificates/display";
 import { formatMonthYear } from "@/lib/format";
-import { BadgeIcon } from "./badge-icon";
+import { BadgeIcon, ownerImageSrc } from "./badge-icon";
 import { CardMenu } from "./card-menu";
 import { OpenDetails } from "./details-dialog";
 import { StatusBadges } from "./status-badges";
@@ -21,7 +21,7 @@ export function CertificateCard({
   return (
     <article className="relative flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-xs transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
-        <BadgeIcon issuer={issuer_name} badgeFileId={badgeFileId} />
+        <BadgeIcon issuer={issuer_name} imageSrc={ownerImageSrc(badgeFileId)} />
         {/* Above the stretched button so the menu stays clickable. */}
         <div className="relative z-10">
           <CardMenu certificateId={id} title={title} />

@@ -6,6 +6,7 @@ import {
   deleteTestUser,
   insertCertificate,
   randomKey,
+  randomSlug,
   type TestUser,
 } from "../helpers";
 
@@ -46,7 +47,7 @@ beforeAll(async () => {
     user_id: a.id,
     scope: "certificate",
     certificate_id: certA,
-    public_slug: randomKey(),
+    public_slug: randomSlug(),
   });
   expect(shareRes.error).toBeNull();
 
@@ -138,7 +139,7 @@ describe("B cannot attach rows to A's certificate", () => {
         user_id: owner === "a" ? a.id : b.id,
         scope: "certificate",
         certificate_id: certA,
-        public_slug: randomKey(),
+        public_slug: randomSlug(),
       });
       expect(error).not.toBeNull();
     });

@@ -61,6 +61,20 @@ as a full page. Display rules live in `src/lib/certificates/display.ts`: status 
 "Status unknown", plus "Issuer link available" when a credential URL exists. CertNest never shows
 "Verified" because certificate data is self-reported. Missing fields show "Not provided".
 
+## Public sharing
+
+Owners manage links in `/settings/sharing` (display name, portfolio on/off, new link, options) and
+from Share Badge in Badge Details. Public pages:
+
+- `/p/{slug}`: portfolio (badges not hidden from it, plus a skills tab)
+- `/p/{slug}/{public_id}`: one badge from the portfolio (`public_id` is a random code, not the id)
+- `/b/{slug}`: a single shared badge (works even if hidden from the portfolio)
+- `/p|b/{slug}/img/{key}`: badge images, only when the share allows images; never PDFs
+
+Public data comes only from `get_public_portfolio` / `get_public_certificate` (whitelisted fields,
+anon key, no session). `resolve_public_image` is service-role only. Invalid or revoked links get
+HTTP 404 from the proxy. Pages are `noindex` and never cached; turned-off links can't be revived.
+
 ## Files
 
 Uploads go through `POST /api/files` (multipart: `certificate_id`, `original`, `badge`); the owner

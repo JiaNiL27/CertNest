@@ -3,6 +3,8 @@ import { Search } from "lucide-react";
 import { Logo } from "@/components/certnest/logo";
 import { UserMenu } from "@/components/certnest/user-menu";
 import { initials } from "@/lib/format";
+import { getPortfolioShare } from "@/lib/sharing/service";
+import { portfolioPath } from "@/lib/sharing/urls";
 import { createClient } from "@/lib/supabase/server";
 
 async function AccountMenu() {
@@ -11,12 +13,16 @@ async function AccountMenu() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
-  const { data } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", user.id)
-    .maybeSingle();
-  return <UserMenu initials={initials(data?.display_name ?? "")} />;
+  const [{ data }, portfolio] = await Promise.all([
+    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+    getPortfolioShare(supabase),
+  ]);
+  return (
+    <UserMenu
+      initials={initials(data?.display_name ?? "")}
+      portfolioPath={portfolio ? portfolioPath(portfolio.public_slug) : null}
+    />
+  );
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
