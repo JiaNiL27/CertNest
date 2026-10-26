@@ -2,7 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Download, FileText, Trash2, X } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,33 +48,94 @@ function Field({
   );
 }
 
+// A file already saved on the certificate: download it, or remove it for good.
 function ExistingFile({ file, onRemoved }: { file: CertificateFile; onRemoved: () => void }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
+  const [removed, setRemoved] = useState(false);
+  if (removed) return null;
+
+  function remove() {
+    if (!window.confirm(`Remove "${file.file_name}"? This deletes the file and can't be undone.`)) return;
+    setError(undefined);
+    startTransition(async () => {
+      const result = await deleteFileAction(file.id);
+      if (result.error) return setError(result.error);
+      setRemoved(true);
+      onRemoved();
+    });
+  }
+
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted px-3 py-2 text-sm">
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted px-3 py-2 text-sm">
+      <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden />
       <span className="min-w-0 flex-1 truncate">
         {file.file_name}{" "}
         <span className="text-muted-foreground">({formatFileSize(file.file_size)})</span>
       </span>
-      <a className="text-primary underline" href={`/api/files?id=${file.id}`}>
-        Download
-      </a>
-      <button
-        type="button"
-        className="text-destructive underline disabled:opacity-50"
-        disabled={pending}
-        onClick={() =>
-          startTransition(async () => {
-            const result = await deleteFileAction(file.id);
-            if (result.error) setError(result.error);
-            else onRemoved();
-          })
-        }
+      <a
+        className={buttonVariants({ variant: "ghost", size: "sm" })}
+        href={`/api/files?id=${file.id}`}
       >
-        {pending ? "Removing…" : "Remove"}
-      </button>
+        <Download aria-hidden /> Download
+      </a>
+      <Button
+        type="button"
+        size="sm"
+        variant="destructive"
+        disabled={pending}
+        onClick={remove}
+        aria-label={`Remove ${file.file_name}`}
+      >
+        <Trash2 aria-hidden /> {pending ? "Removing…" : "Remove"}
+      </Button>
       {error && <p className="w-full text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+// File input that shows the chosen file and lets you clear it before saving.
+// The native input keeps the file, so it's still sent with the form.
+function FilePicker({ id, accept, label }: { id: string; accept: string; label: string }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [chosen, setChosen] = useState<File | null>(null);
+
+  function clear() {
+    if (inputRef.current) inputRef.current.value = "";
+    setChosen(null);
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Input
+        ref={inputRef}
+        id={id}
+        name={id}
+        type="file"
+        accept={accept}
+        onChange={(e) => setChosen(e.currentTarget.files?.[0] ?? null)}
+        className={chosen ? "sr-only" : undefined}
+      />
+      {chosen && (
+        <div className="flex items-center gap-2 rounded-lg border border-dashed border-primary/40 px-3 py-2 text-sm">
+          <FileText className="size-4 shrink-0 text-primary" aria-hidden />
+          <span className="min-w-0 flex-1 truncate">
+            {chosen.name}{" "}
+            <span className="text-muted-foreground">
+              ({formatFileSize(chosen.size)}, uploads when you save)
+            </span>
+          </span>
+          <Button
+            type="button"
+            size="icon-sm"
+            variant="ghost"
+            onClick={clear}
+            aria-label={`Clear selected ${label.toLowerCase()}`}
+          >
+            <X aria-hidden />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -295,10 +357,9 @@ export function CertificateForm({ certificate }: { certificate?: CertificateDeta
           {certificate?.original && (
             <ExistingFile file={certificate.original} onRemoved={() => router.refresh()} />
           )}
-          <Input
+          <FilePicker
             id="original"
-            name="original"
-            type="file"
+            label="Certificate file"
             accept="application/pdf,image/png,image/jpeg,image/webp"
           />
         </Field>
@@ -311,7 +372,7 @@ export function CertificateForm({ certificate }: { certificate?: CertificateDeta
           {certificate?.badge && (
             <ExistingFile file={certificate.badge} onRemoved={() => router.refresh()} />
           )}
-          <Input id="badge" name="badge" type="file" accept="image/png,image/jpeg,image/webp" />
+          <FilePicker id="badge" label="Badge image" accept="image/png,image/jpeg,image/webp" />
         </Field>
       </section>
 

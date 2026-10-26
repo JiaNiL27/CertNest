@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { ChevronDown, Download, FileText, Image as ImageIcon, Link2, UserPlus } from "lucide-react";
+import {
+  ChevronDown,
+  Download,
+  FileText,
+  Image as ImageIcon,
+  Link2,
+  Sparkles,
+  UserPlus,
+} from "lucide-react";
+import { AiPostPanel } from "@/components/ai/ai-post-panel";
+import type { AiPanelState } from "@/app/(app)/certificates/ai-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { BadgeIcon, ownerImageSrc } from "@/components/certnest/badge-icon";
 import {
@@ -48,15 +58,21 @@ function Step({
 export function ShareBadgePanel({
   certificateId,
   onPortfolioUrl,
+  initial,
+  initialAi,
 }: {
   certificateId: string;
   onPortfolioUrl?: (url: string | null) => void;
+  /** Server-loaded state; when given, the panel doesn't fetch on mount. */
+  initial?: State;
+  initialAi?: AiPanelState;
 }) {
-  const [state, setState] = useState<State | null>(null);
+  const [state, setState] = useState<State | null>(initial ?? null);
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
+    if (initial) return;
     let active = true;
     getCertificateShareState(certificateId).then((result) => {
       if (!active) return;
@@ -68,6 +84,8 @@ export function ShareBadgePanel({
     return () => {
       active = false;
     };
+    // `initial` is only read on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateId, onPortfolioUrl]);
 
   if (!state) {
@@ -135,6 +153,17 @@ export function ShareBadgePanel({
             <p className="text-xs text-muted-foreground">
               A LinkedIn post can only include the link; copy any text you want to add. {CACHE_NOTE}
             </p>
+            <details className="group rounded-lg border px-4 py-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
+                <span className="flex items-center gap-2">
+                  <Sparkles className="size-4 text-primary" aria-hidden /> Write the post text with AI
+                </span>
+                <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
+              </summary>
+              <div className="pt-4">
+                <AiPostPanel certificateId={certificateId} initial={initialAi} />
+              </div>
+            </details>
             <details className="group rounded-lg border px-4 py-3">
               <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
                 Link settings

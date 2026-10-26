@@ -236,7 +236,8 @@ generated_contents (
 - Slug 用服务器端的加密安全随机数产生，22 位 base62。
 - 用户输入的内容一律当纯文本渲染，不使用 `dangerouslySetInnerHTML`。
 - 证书链接只接受 `http` 和 `https`，打开时加 `rel="noopener noreferrer"`。
-- AI 接口：确认证书属于当前用户，每个用户每小时有生成次数上限（M5 时加一张 `ai_requests` 记录表）。
+- AI 接口：确认证书属于当前用户，每个用户每小时有生成次数上限（M5 时加一张 `ai_requests` 记录表）。M5 实现：上限 10 次/小时，由数据库函数 `consume_ai_quota` 原子检查并记录；用户不能自行写入、删除或退还记录。只把证书字段送给 AI，不送姓名、邮箱、链接和 Credential ID。
+- AI 供应商（2026-10-27 决定）：开发阶段用 Gemini 免费版（只用测试资料），正式上线前必须换成付费供应商（Gemini 付费版或 Claude）；正式环境默认拒绝使用 Gemini 免费版。
 
 ## 页面与路由
 
@@ -283,7 +284,7 @@ M1 完成时，应用里只有登录和一个空的 Dashboard，但数据库、�
 - `@supabase/supabase-js`、`@supabase/ssr`、Supabase CLI（管理 migration 和连接线上项目，不需要 Docker）
 - `zod` 做输入验证，`server-only` 保护服务器模块
 - Vitest 做测试
-- 之后才加：`sharp`（M2 处理图片）、AI SDK（M5 再决定）、Playwright（M6）
+- 之后才加：`sharp`（M2 处理图片）、AI SDK（M5 决定：`@google/genai`，上线前换付费供应商）、Playwright（M6）
 
 ### 步骤
 

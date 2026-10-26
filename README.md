@@ -75,6 +75,22 @@ Public data comes only from `get_public_portfolio` / `get_public_certificate` (w
 anon key, no session). `resolve_public_image` is service-role only. Invalid or revoked links get
 HTTP 404 from the proxy. Pages are `noindex` and never cached; turned-off links can't be revived.
 
+## AI post drafts
+
+`/certificates/{id}` and the Share Badge panel can draft a LinkedIn post with AI
+(`POST /api/ai/generate`, streamed text). Only the certificate's own fields are sent (no name,
+email, links or Credential ID); the prompt forbids invented facts and "verified" claims. Drafts are
+saved per language in `generated_contents` (owner-only, never public). Each user gets 10
+generations per rolling hour, enforced in the database (`consume_ai_quota`); failures before any
+text is produced are refunded.
+
+The provider is chosen with `AI_PROVIDER` (`src/lib/ai/provider.ts`). Development uses the Gemini
+free tier (`GEMINI_API_KEY` from https://aistudio.google.com) — Google may use free-tier prompts,
+so use test data only. The default model is `gemini-flash-lite-latest`, falling back to
+`gemini-flash-latest` when the first is overloaded or doesn't start answering within 15 seconds
+(SDK retries are off so requests never hang). Production refuses Gemini unless `AI_ALLOW_GEMINI_IN_PRODUCTION=true` (paid
+key). **Before launch:** switch to a paid provider (Gemini paid or Claude).
+
 ## Files
 
 Uploads go through `POST /api/files` (multipart: `certificate_id`, `original`, `badge`); the owner

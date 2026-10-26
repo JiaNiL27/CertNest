@@ -39,6 +39,16 @@ describe("client bundle", () => {
     const leaks = walk(".next/static").filter((f) => readFileSync(f).includes(key!));
     expect(leaks).toEqual([]);
   });
+
+  it("does not contain AI provider keys", () => {
+    const keys = [process.env.GEMINI_API_KEY, process.env.ANTHROPIC_API_KEY].filter(
+      (k): k is string => !!k && k.length > 8,
+    );
+    const files = walk(".next/static");
+    for (const k of keys) {
+      expect(files.filter((f) => readFileSync(f).includes(k))).toEqual([]);
+    }
+  });
 });
 
 describe("proxy", () => {
@@ -87,6 +97,13 @@ describe("proxy", () => {
     }
     const upload = await fetch(`${BASE}/api/files`, { method: "POST", redirect: "manual" });
     expect([302, 303, 307, 308]).toContain(upload.status);
+    const ai = await fetch(`${BASE}/api/ai/generate`, {
+      method: "POST",
+      redirect: "manual",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ certificateId: "00000000-0000-0000-0000-000000000000", language: "en", tone: "professional" }),
+    });
+    expect([302, 303, 307, 308]).toContain(ai.status);
   });
 
   it("serves /login without a session", async () => {
