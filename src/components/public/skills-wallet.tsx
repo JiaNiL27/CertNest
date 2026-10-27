@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, Search } from "lucide-react";
+import { ArrowRight, ChevronDown, Search, SearchX, Sparkles } from "lucide-react";
 import { cn } from "cn";
 import { BadgeIcon } from "@/components/certnest/badge-icon";
+import { EmptyState } from "@/components/certnest/empty-state";
 import { formatMonthYear } from "@/lib/format";
 import type { PublicCertificate } from "@/lib/sharing/public";
 import { portfolioBadgePath, publicImagePath } from "@/lib/sharing/urls";
@@ -97,9 +98,12 @@ export function SkillsWallet({
       </div>
 
       {rows.length === 0 ? (
-        <p className="rounded-2xl border border-dashed p-12 text-center text-muted-foreground">
-          {query.trim() ? "No skills match your search." : "No skills to show yet."}
-        </p>
+        <EmptyState
+          role={query.trim() ? "status" : undefined}
+          icon={query.trim() ? SearchX : Sparkles}
+          title={query.trim() ? "No skills match" : "No skills to show yet"}
+          description={query.trim() ? "Try a different skill name." : undefined}
+        />
       ) : (
         <ul className="flex flex-col gap-3">
           {rows.map((row) => {

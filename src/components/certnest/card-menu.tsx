@@ -20,7 +20,7 @@ export function CardMenu({ certificateId, title }: { certificateId: string; titl
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label={`Actions for ${title}`}
-          className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="grid size-10 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <MoreHorizontal className="size-5" />
         </DropdownMenuTrigger>

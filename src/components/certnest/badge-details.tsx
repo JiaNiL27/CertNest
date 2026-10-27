@@ -47,13 +47,13 @@ export function BadgeDetails({
         <BadgeIcon
           issuer={c.issuer_name}
           imageSrc={ownerImageSrc(c.badge?.id ?? null)}
-          className="size-48 md:size-52 [&>div]:text-6xl"
+          className="size-36 sm:size-48 md:size-52 [&>div]:text-5xl sm:[&>div]:text-6xl"
         />
       </div>
 
       <div className="flex min-w-0 flex-col gap-5">
         <header className="flex flex-col gap-2">
-          <Title className="text-3xl leading-tight font-semibold">{c.title}</Title>
+          <Title className="text-2xl leading-tight font-semibold break-words sm:text-3xl">{c.title}</Title>
           <p className="text-muted-foreground">
             Issued by <span className="font-medium text-foreground">{c.issuer_name}</span>
           </p>

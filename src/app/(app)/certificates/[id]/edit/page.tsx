@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CertificateForm } from "@/components/certnest/certificate-form";
 import { getCertificate } from "@/lib/certificates/queries";
 import { createClient } from "@/lib/supabase/server";
+import { FormSkeleton } from "@/components/certnest/skeletons";
 
 export const metadata = { title: "Edit certificate · CertNest" };
 
@@ -35,7 +36,7 @@ export default function EditCertificatePage({
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
       <h1 className="text-3xl font-semibold">Edit certificate</h1>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+      <Suspense fallback={<FormSkeleton />}>
         <EditForm params={params} searchParams={searchParams} />
       </Suspense>
     </main>

@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Award, Plus, SearchX } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/certnest/empty-state";
 import { CertificateCard } from "@/components/certnest/certificate-card";
 import {
   SORT_OPTIONS,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/certificates/queries";
 import { todayUtc } from "@/lib/certificates/display";
 import { createClient } from "@/lib/supabase/server";
+import { LibrarySkeleton } from "@/components/certnest/skeletons";
 
 export const metadata = { title: "My certificates · CertNest" };
 
@@ -81,16 +83,30 @@ async function Library({ searchParams }: { searchParams: PageProps<"/certificate
       </form>
 
       {certificates.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-12 text-center">
-          <p className="font-heading text-lg">
-            {filtered ? "No certificates match your search." : "No certificates yet."}
-          </p>
-          {!filtered && (
-            <Link href="/certificates/new" className={buttonVariants({ size: "lg" })}>
-              <Plus aria-hidden /> Add your first certificate
-            </Link>
-          )}
-        </div>
+        filtered ? (
+          <EmptyState
+            role="status"
+            icon={SearchX}
+            title="No certificates match"
+            description="Try a different title or organization."
+            action={
+              <Link href="/certificates" className={buttonVariants({ size: "lg", variant: "outline" })}>
+                Clear search
+              </Link>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon={Award}
+            title="No certificates yet"
+            description="Add a certificate or badge you've earned to start your collection."
+            action={
+              <Link href="/certificates/new" className={buttonVariants({ size: "lg" })}>
+                <Plus aria-hidden /> Add your first certificate
+              </Link>
+            }
+          />
+        )
       ) : (
         <>
           <p className="text-sm text-muted-foreground" aria-live="polite">
@@ -116,7 +132,7 @@ export default function CertificatesPage({ searchParams }: PageProps<"/certifica
           <Plus aria-hidden /> Add certificate
         </Link>
       </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+      <Suspense fallback={<LibrarySkeleton />}>
         <Library searchParams={searchParams} />
       </Suspense>
     </main>

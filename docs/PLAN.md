@@ -272,6 +272,20 @@ generated_contents (
 4. **M4 分享：** 公开读取函数、作品集页、单张证书页、图片路由、开关和撤销、访客预览、OG 预览标签，分享到 LinkedIn、X、Facebook、Email。
 5. **M5 AI 贴文：** 生成、编辑、重新生成、复制、保存 LinkedIn 贴文，资料不足时提示，次数上限。
 6. **M6 打磨：** 加载、错误、空白状态，手机版，键盘操作和对比度，Playwright 端到端测试。
+7. **M7 从文件自动填写（2026-10-27 新增）：** 新增证书时上传 PDF 或图片后，用 AI 读出标题、发证机构、日期、Credential ID、证书链接、技能，预填到表单，标示"Suggested by AI, please check"，由用户确认后才保存；`field_sources` 记为 AI 建议；与贴文共用每小时次数上限。只做文件和图片，不做 URL 抓取（SSRF 风险）。前提：已换成付费 AI 供应商（证书原件含全名等个人资料，不能送到会用于训练的免费版）。
+
+## 上线前清单（2026-10-27 新增）
+
+以下全部完成前不对外开放注册：
+
+- [ ] 建立正式 Supabase 项目（与 `certnest-dev` 分开），套用全部 migration，确认 RLS 和 storage policy。
+- [ ] AI 换成付费供应商（Gemini 付费版或 Claude），设定 `AI_PROVIDER` 和对应 key；正式环境不设 `AI_ALLOW_GEMINI_IN_PRODUCTION`，除非用的是付费 key。
+- [ ] 接入自己的 SMTP（例如 Resend + 自己的域名，SPF/DKIM），调高 Supabase 寄信上限，自订英文邮件模板。
+- [ ] 部署（例如 Vercel）：设定 `SITE_URL`、Supabase Auth 的 Site URL 和 Redirect URLs；所有密钥只放服务器环境变量。
+- [ ] 确认 Confirm email 已开启。
+- [ ] 在正式网址测一次 LinkedIn 分享预览和 Add to Profile。
+- [ ] 跑完全部测试（unit、DB、app、E2E），并人工测注册、验证邮箱、重设密码。
+- [ ] 隐私政策与服务条款页面（若对外开放）。
 
 ## M1 执行指令
 

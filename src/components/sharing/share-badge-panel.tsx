@@ -14,6 +14,7 @@ import { AiPostPanel } from "@/components/ai/ai-post-panel";
 import type { AiPanelState } from "@/app/(app)/certificates/ai-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { BadgeIcon, ownerImageSrc } from "@/components/certnest/badge-icon";
+import { PanelSkeleton } from "@/components/certnest/skeletons";
 import {
   enableCertificateShareAction,
   getCertificateShareState,
@@ -89,8 +90,12 @@ export function ShareBadgePanel({
   }, [certificateId, onPortfolioUrl]);
 
   if (!state) {
-    return (
-      <p className="py-8 text-center text-muted-foreground">{error ?? "Loading…"}</p>
+    return error ? (
+      <p role="alert" className="py-8 text-center text-destructive">
+        {error}
+      </p>
+    ) : (
+      <PanelSkeleton label="Loading sharing options" />
     );
   }
 
@@ -104,14 +109,16 @@ export function ShareBadgePanel({
 
   return (
     <div className="flex flex-col gap-7">
-      <header className="flex items-center gap-4 rounded-xl bg-linear-to-r from-secondary to-transparent p-4">
+      <header className="flex items-start gap-3 rounded-xl bg-linear-to-r from-secondary to-transparent p-4 sm:items-center sm:gap-4">
         <BadgeIcon
           issuer={badge.issuer_name}
           imageSrc={ownerImageSrc(badge.badgeFileId)}
-          className="size-16 [&>div]:text-2xl"
+          className="size-12 shrink-0 sm:size-16 [&>div]:text-xl sm:[&>div]:text-2xl"
         />
         <div className="min-w-0">
-          <h3 className="truncate text-xl font-semibold">Share “{badge.title}”</h3>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Share</p>
+          {/* Full title, wrapping as needed; never truncated. */}
+          <h3 className="text-lg leading-snug font-semibold break-words sm:text-xl">{badge.title}</h3>
           <p className="text-sm text-muted-foreground">from {badge.issuer_name}</p>
         </div>
       </header>

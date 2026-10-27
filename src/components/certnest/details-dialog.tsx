@@ -8,6 +8,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui
 import { getCertificateDetails } from "@/app/(app)/certificates/actions";
 import type { CertificateDetail } from "@/lib/certificates/queries";
 import { BadgeDetails } from "./badge-details";
+import { DetailSkeleton } from "./skeletons";
 
 type Loaded = { certificate: CertificateDetail; today: string } | null | undefined;
 
@@ -37,13 +38,14 @@ export function OpenDetails({ certificateId, title }: { certificateId: string; t
         {title}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-4xl">
+        {/* Nearly full screen on phones, a centered panel on larger screens. */}
+        <DialogContent className="flex max-h-[96dvh] max-w-[calc(100%-1rem)] flex-col gap-0 p-0 sm:max-h-[90vh] sm:max-w-4xl">
           <header className="border-b px-6 py-4 pr-12">
             <DialogTitle className="font-heading text-2xl font-semibold">Badge Details</DialogTitle>
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
             {pending || data === undefined ? (
-              <p className="py-16 text-center text-muted-foreground">Loading…</p>
+              <DetailSkeleton />
             ) : data === null ? (
               <p className="py-16 text-center text-muted-foreground">
                 This certificate could not be found.

@@ -5,6 +5,8 @@ import { ArrowRight, Award, ExternalLink, Globe, Pencil, Plus, Sparkles } from "
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CertificateCard } from "@/components/certnest/certificate-card";
+import { DashboardSkeleton } from "@/components/certnest/skeletons";
+import { EmptyState } from "@/components/certnest/empty-state";
 import { todayUtc } from "@/lib/certificates/display";
 import { getDashboardData } from "@/lib/certificates/queries";
 import { initials } from "@/lib/format";
@@ -16,7 +18,7 @@ export const metadata = { title: "Dashboard · CertNest" };
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border bg-background/80 px-5 py-3">
+    <div className="flex-1 rounded-xl border bg-background/80 px-5 py-3 sm:flex-none">
       <p className="font-heading text-2xl font-semibold">{value}</p>
       <p className="text-sm text-muted-foreground">{label}</p>
     </div>
@@ -39,19 +41,28 @@ async function DashboardContent() {
   return (
     <>
       <section className="border-b bg-linear-to-br from-secondary via-muted to-background">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-6 px-4 py-10">
+        {/* Phones: stacked (avatar + name, text, stats, links). Wider: one row. */}
+        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-center sm:gap-6 sm:py-10">
           <div
             aria-hidden
-            className="grid size-24 place-items-center rounded-full bg-primary/15 font-heading text-3xl text-primary"
+            className="hidden size-24 shrink-0 place-items-center rounded-full bg-primary/15 font-heading text-3xl text-primary sm:grid"
           >
             {initials(displayName) || <Award className="size-10" />}
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <h1 className="text-4xl font-semibold">
-              {displayName || <span className="text-muted-foreground">Display name not provided</span>}
-            </h1>
+            <div className="flex items-center gap-3">
+              <span
+                aria-hidden
+                className="grid size-14 shrink-0 place-items-center rounded-full bg-primary/15 font-heading text-xl text-primary sm:hidden"
+              >
+                {initials(displayName) || <Award className="size-6" />}
+              </span>
+              <h1 className="min-w-0 text-3xl font-semibold break-words sm:text-4xl">
+                {displayName || <span className="text-muted-foreground">Display name not provided</span>}
+              </h1>
+            </div>
             <p className="text-muted-foreground">Your certificates and skills, all in one place.</p>
-            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-primary">
+            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-primary">
               <Link href="/settings/sharing" className="flex items-center gap-1.5">
                 <Pencil className="size-4" aria-hidden /> Edit profile
               </Link>
@@ -71,7 +82,7 @@ async function DashboardContent() {
               )}
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 sm:shrink-0">
             <Stat label={certificateCount === 1 ? "Certificate" : "Certificates"} value={certificateCount} />
             <Stat label={skills.length === 1 ? "Skill" : "Skills"} value={skills.length} />
           </div>
@@ -95,24 +106,31 @@ async function DashboardContent() {
           </div>
 
           <TabsContent value="badges" className="flex flex-col gap-4">
-            <div className="flex items-end justify-between gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
               <div>
                 <h2 className="text-2xl font-semibold">Recently added</h2>
                 <p className="text-muted-foreground">Your credentials and achievements, all in one place.</p>
               </div>
               {certificateCount > 0 && (
-                <Link href="/certificates" className="flex items-center gap-1 text-sm font-medium text-primary">
+                <Link
+                  href="/certificates"
+                  className="flex shrink-0 items-center gap-1 text-sm font-medium whitespace-nowrap text-primary"
+                >
                   View all badges <ArrowRight className="size-4" aria-hidden />
                 </Link>
               )}
             </div>
             {recent.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-12 text-center">
-                <p className="font-heading text-lg">No certificates yet.</p>
-                <Link href="/certificates/new" className={buttonVariants({ size: "lg" })}>
-                  <Plus aria-hidden /> Add your first certificate
-                </Link>
-              </div>
+              <EmptyState
+                icon={Award}
+                title="No certificates yet"
+                description="Add a certificate or badge you've earned. You can upload the file and add skills."
+                action={
+                  <Link href="/certificates/new" className={buttonVariants({ size: "lg" })}>
+                    <Plus aria-hidden /> Add your first certificate
+                  </Link>
+                }
+              />
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {recent.map((c) => (
@@ -128,9 +146,11 @@ async function DashboardContent() {
               <p className="text-muted-foreground">The skills you’re developing through your certifications.</p>
             </div>
             {skills.length === 0 ? (
-              <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
-                No skills yet. Add skills when you add or edit a certificate.
-              </p>
+              <EmptyState
+                icon={Sparkles}
+                title="No skills yet"
+                description="Add skills when you add or edit a certificate, and they'll show up here."
+              />
             ) : (
               <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {skills.map((s) => (
@@ -159,7 +179,7 @@ export default function DashboardPage() {
   return (
     <main>
       <Suspense
-        fallback={<p className="mx-auto max-w-6xl px-4 py-10 text-sm text-muted-foreground">Loading…</p>}
+        fallback={<DashboardSkeleton />}
       >
         <DashboardContent />
       </Suspense>

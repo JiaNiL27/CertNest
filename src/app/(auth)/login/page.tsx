@@ -18,7 +18,9 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sign in to CertNest</CardTitle>
+        <CardTitle>
+          <h1 className="text-lg">Sign in to CertNest</h1>
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Suspense fallback={null}>

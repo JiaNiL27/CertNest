@@ -11,6 +11,7 @@ import { getCertificate } from "@/lib/certificates/queries";
 import { createClient } from "@/lib/supabase/server";
 import { loadAiPanelState } from "@/lib/ai/panel-state";
 import { loadShareBadgeState } from "@/lib/sharing/badge-state";
+import { DetailSkeleton } from "@/components/certnest/skeletons";
 
 export const metadata = { title: "Badge details · CertNest" };
 
@@ -62,7 +63,7 @@ export default function CertificatePage({ params }: PageProps<"/certificates/[id
       >
         <ArrowLeft className="size-4" aria-hidden /> Back to my certificates
       </Link>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+      <Suspense fallback={<DetailSkeleton />}>
         <Details params={params} />
       </Suspense>
     </main>

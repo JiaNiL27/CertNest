@@ -6,6 +6,7 @@ import { Check, Loader2, Save, Sparkles, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CopyButton } from "@/components/certnest/copy-button";
+import { PanelSkeleton } from "@/components/certnest/skeletons";
 import {
   getAiPanelState,
   saveLinkedInPost,
@@ -62,7 +63,7 @@ export function AiPostPanel({
   }, [certificateId]);
 
   if (notFound) return <p className="text-sm text-muted-foreground">This certificate could not be found.</p>;
-  if (!state) return <p className="py-6 text-center text-sm text-muted-foreground">Loading…</p>;
+  if (!state) return <PanelSkeleton label="Loading the AI post writer" />;
 
   const dirty = text !== savedText;
   const writing = status === "writing";

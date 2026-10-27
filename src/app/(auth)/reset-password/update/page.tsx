@@ -8,7 +8,9 @@ export default function UpdatePasswordPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Choose a new password</CardTitle>
+        <CardTitle>
+          <h1 className="text-lg">Choose a new password</h1>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <AuthForm

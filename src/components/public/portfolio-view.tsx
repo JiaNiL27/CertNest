@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Award, Building2, ChevronDown, Search, Sparkles, X } from "lucide-react";
+import { Award, Building2, ChevronDown, Search, SearchX, Sparkles, X } from "lucide-react";
 import { cn } from "cn";
 import { expirationState } from "@/lib/certificates/display";
 import type { PublicCertificate } from "@/lib/sharing/public";
+import { EmptyState } from "@/components/certnest/empty-state";
 import { PublicBadgeCard } from "./public-badge-card";
 import { SkillsWallet } from "./skills-wallet";
 
@@ -78,12 +79,18 @@ export function PortfolioView({
   const showSkill = (name: string) => {
     setSkill(name);
     setTab("badges");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   };
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10">
-      <div role="tablist" aria-label="Wallet" className="mx-auto flex rounded-full border bg-muted p-1">
+      {/* Phones: two equal halves across the full width. Wider: centered pill. */}
+      <div
+        role="tablist"
+        aria-label="Wallet"
+        className="mx-auto grid w-full max-w-md grid-cols-2 rounded-full border bg-muted p-1 sm:flex sm:w-auto sm:max-w-none"
+      >
         {(
           [
             ["badges", "Badge Wallet", Award, certificates.length],
@@ -97,7 +104,7 @@ export function PortfolioView({
             aria-selected={tab === value}
             onClick={() => setTab(value)}
             className={cn(
-              "flex items-center gap-1.5 rounded-full px-3.5 py-2.5 text-sm font-medium whitespace-nowrap transition-all sm:gap-2 sm:px-7",
+              "flex min-w-0 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 text-sm font-medium whitespace-nowrap transition-all sm:gap-2 sm:px-7",
               tab === value
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -178,9 +185,12 @@ export function PortfolioView({
           )}
 
           {active.length === 0 && expired.length === 0 ? (
-            <p className="rounded-2xl border border-dashed p-12 text-center text-muted-foreground">
-              {filtered ? "No badges match your search." : "No badges to show yet."}
-            </p>
+            <EmptyState
+              role={filtered ? "status" : undefined}
+              icon={filtered ? SearchX : Award}
+              title={filtered ? "No badges match" : "No badges to show yet"}
+              description={filtered ? "Try a different search or clear the filters." : undefined}
+            />
           ) : (
             <>
               {active.length > 0 && (

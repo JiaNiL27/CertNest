@@ -64,7 +64,9 @@
   --muted-foreground: oklch(0.52 0.02 220);
   --accent: oklch(0.95 0.025 180);
   --accent-foreground: oklch(0.35 0.06 185);
-  --destructive: oklch(0.577 0.245 27.325);
+  /* Darker than the shadcn default so red text passes WCAG AA (4.5:1) on its
+     own tinted background (5.4:1) as well as on white (5.9:1). */
+  --destructive: oklch(0.53 0.22 27.3);
   --border: oklch(0.92 0.01 200);
   --input: oklch(0.9 0.012 200);
   --ring: oklch(0.6 0.07 185);
@@ -130,5 +132,28 @@
   }
   h1, h2, h3 {
     @apply font-heading;
+  }
+  /* Visible keyboard focus for plain links and controls. Zero-specificity
+     :where() so components that style their own focus ring still win. */
+  :where(a, button, summary, select, [role="tab"], input[type="checkbox"], input[type="radio"]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Respect "reduce motion": no animations or smooth scrolling. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .group:hover,
+  .hover\:-translate-y-0\.5:hover {
+    translate: none !important;
   }
 }

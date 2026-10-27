@@ -7,7 +7,9 @@ export default function ResetPasswordPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reset your password</CardTitle>
+        <CardTitle>
+          <h1 className="text-lg">Reset your password</h1>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <AuthForm

@@ -23,18 +23,18 @@ export function PublicBadgeDetail({
   const issuerLink = hasIssuerLink(c);
 
   return (
-    <article className="grid gap-10 md:grid-cols-[18rem_1fr]">
+    <article className="grid gap-8 md:grid-cols-[18rem_1fr] md:gap-10">
       <div className="flex justify-center md:justify-start">
         <BadgeIcon
           issuer={c.issuer_name}
           imageSrc={imageSrc}
-          className="size-64 md:size-72 [&>div]:text-7xl"
+          className="size-44 sm:size-64 md:size-72 [&>div]:text-6xl sm:[&>div]:text-7xl"
         />
       </div>
 
       <div className="flex min-w-0 flex-col gap-6">
         <header className="flex flex-col gap-2">
-          <h1 className="text-4xl leading-tight font-semibold">{c.title}</h1>
+          <h1 className="text-3xl leading-tight font-semibold break-words sm:text-4xl">{c.title}</h1>
           <p className="text-muted-foreground">
             Issued by <span className="font-medium text-foreground">{c.issuer_name}</span>
           </p>

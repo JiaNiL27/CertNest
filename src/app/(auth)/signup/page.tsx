@@ -7,7 +7,9 @@ export default function SignupPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create your CertNest account</CardTitle>
+        <CardTitle>
+          <h1 className="text-lg">Create your CertNest account</h1>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <AuthForm

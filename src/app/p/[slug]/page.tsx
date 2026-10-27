@@ -49,19 +49,28 @@ export default async function PortfolioPage({ params }: PageProps<"/p/[slug]">) 
           aria-hidden
           className="absolute -top-24 -right-24 size-80 rounded-full bg-primary/10 blur-3xl"
         />
-        <div className="relative mx-auto flex max-w-4xl flex-col items-center justify-center gap-6 px-4 py-14 text-center sm:flex-row sm:gap-8 sm:text-left">
+        <div className="relative mx-auto flex max-w-4xl flex-col items-center justify-center gap-5 px-4 py-10 text-center sm:flex-row sm:gap-8 sm:py-14 sm:text-left">
           <div
             aria-hidden
-            className="grid size-28 shrink-0 place-items-center rounded-full bg-background font-heading text-5xl text-primary shadow-sm ring-8 ring-primary/10"
+            className="grid size-20 shrink-0 place-items-center rounded-full bg-background font-heading text-4xl text-primary shadow-sm ring-8 ring-primary/10 sm:size-28 sm:text-5xl"
           >
             {initials(display_name)}
           </div>
-          <div className="flex min-w-0 flex-col items-center gap-2 sm:items-start">
-            <h1 className="text-4xl font-semibold sm:text-5xl">{display_name}</h1>
-            <p className="text-lg text-muted-foreground">
-              {plural(certificates.length, "badge")} · {plural(skillCount, "skill")} ·{" "}
-              {plural(organizationCount, "organization")}
-            </p>
+          <div className="flex min-w-0 max-w-full flex-col items-center gap-2 sm:items-start">
+            <h1 className="max-w-full text-3xl font-semibold break-words sm:text-5xl">{display_name}</h1>
+            {/* Stats wrap as whole items on narrow screens. */}
+            <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-base text-muted-foreground sm:justify-start sm:text-lg">
+              {[
+                plural(certificates.length, "badge"),
+                plural(skillCount, "skill"),
+                plural(organizationCount, "organization"),
+              ].map((stat, i) => (
+                <li key={stat} className="flex items-center gap-3 whitespace-nowrap">
+                  {i > 0 && <span aria-hidden>·</span>}
+                  {stat}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>

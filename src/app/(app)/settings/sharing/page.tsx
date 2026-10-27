@@ -5,6 +5,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { getPortfolioShare, listCertificateShares } from "@/lib/sharing/service";
 import { badgePath, portfolioPath } from "@/lib/sharing/urls";
 import { createClient } from "@/lib/supabase/server";
+import { PanelSkeleton } from "@/components/certnest/skeletons";
 
 export const metadata = { title: "Sharing settings · CertNest" };
 
@@ -46,7 +47,7 @@ export default function SharingSettingsPage() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
       <h1 className="text-3xl font-semibold">Profile & sharing</h1>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+      <Suspense fallback={<PanelSkeleton label="Loading your sharing settings" />}>
         <Settings />
       </Suspense>
     </main>

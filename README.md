@@ -51,7 +51,13 @@ npm run test:unit  # file type detection, EXIF stripping, form validation (no ne
 npm run test:db    # RLS, storage, constraints, ensure_skills, uploads/downloads/deletes, library queries
 npm run test:app   # next build, then: no service role key in .next/static, protected routes redirect to /login
 npm test           # all three
+npm run test:e2e   # next build, then Playwright (desktop + Pixel 7 emulation) with axe checks
 ```
+
+End-to-end tests (`e2e/`) start a production server on port 3200 with the test-only AI provider
+(`AI_PROVIDER=mock`, `CERTNEST_E2E=true`), create confirmed throwaway users through the admin API,
+and delete them afterwards. First run only: `npx playwright install chromium`. Sign-up and email
+verification need a real inbox and stay a manual check.
 
 ## Badge details and status
 

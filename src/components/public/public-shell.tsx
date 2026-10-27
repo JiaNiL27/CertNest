@@ -23,7 +23,9 @@ export function PublicShell({
           </Link>
         </div>
       </header>
-      <main className="flex-1">{children}</main>
+      <main id="main" tabIndex={-1} className="flex-1 outline-none">
+        {children}
+      </main>
       <footer className="flex flex-col gap-1 border-t px-4 py-8 text-center text-xs text-muted-foreground">
         <p>
           {sharedBy && <>Credentials shared by {sharedBy} · </>}Powered by CertNest
