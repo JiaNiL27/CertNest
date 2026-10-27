@@ -4,8 +4,7 @@ import { Search } from "lucide-react";
 import { Logo } from "@/components/certnest/logo";
 import { UserMenu } from "@/components/certnest/user-menu";
 import { initials } from "@/lib/format";
-import { getPortfolioShare } from "@/lib/sharing/service";
-import { portfolioPath } from "@/lib/sharing/urls";
+import { getPortfolioHomePath } from "@/lib/sharing/service";
 import { createClient } from "@/lib/supabase/server";
 
 async function AccountMenu() {
@@ -14,14 +13,14 @@ async function AccountMenu() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
-  const [{ data }, portfolio] = await Promise.all([
+  const [{ data }, portfolioHome] = await Promise.all([
     supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
-    getPortfolioShare(supabase),
+    getPortfolioHomePath(supabase),
   ]);
   return (
     <UserMenu
       initials={initials(data?.display_name ?? "")}
-      portfolioPath={portfolio ? portfolioPath(portfolio.public_slug) : null}
+      portfolioPath={portfolioHome}
     />
   );
 }

@@ -72,7 +72,11 @@ as a full page. Display rules live in `src/lib/certificates/display.ts`: status 
 Owners manage links in `/settings/sharing` (display name, portfolio on/off, new link, options) and
 from Share Badge in Badge Details. Public pages:
 
-- `/p/{slug}`: portfolio (badges not hidden from it, plus a skills tab)
+- `/p/{slug}` and `/p/{slug}/skills`: portfolio (badges not hidden from it) and its skills
+- `/u/{handle}`, `/u/{handle}/skills`, `/u/{handle}/badges/{public_id}`: the portfolio at an
+  optional custom address. It replaces the random `/p/` link, which stops working; removing the
+  address issues a new random link (DB trigger), never the old one. Works only while the portfolio
+  is on; released handles stay reserved for their previous owner for 90 days
 - `/p/{slug}/{public_id}`: one badge from the portfolio (`public_id` is a random code, not the id)
 - `/b/{slug}`: a single shared badge (works even if hidden from the portfolio)
 - `/p|b/{slug}/img/{key}`: badge images, only when the share allows images; never PDFs

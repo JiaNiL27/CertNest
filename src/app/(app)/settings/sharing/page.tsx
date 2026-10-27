@@ -17,7 +17,7 @@ async function Settings() {
   if (!user) redirect("/login");
 
   const [profile, portfolio, badgeShares] = await Promise.all([
-    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("display_name, handle").eq("id", user.id).maybeSingle(),
     getPortfolioShare(supabase),
     listCertificateShares(supabase),
   ]);
@@ -26,6 +26,8 @@ async function Settings() {
   return (
     <SharingSettings
       displayName={profile.data?.display_name ?? ""}
+      handle={profile.data?.handle ?? null}
+      siteUrl={site}
       portfolio={
         portfolio && {
           id: portfolio.id,

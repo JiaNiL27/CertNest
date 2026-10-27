@@ -73,9 +73,12 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
 export function LinkSettings({
   share,
   onChange,
+  canRegenerate = true,
 }: {
   share: ShareView;
   onChange: (share: ShareView | null) => void;
+  /** False while a custom address replaces the random link. */
+  canRegenerate?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
@@ -127,14 +130,16 @@ export function LinkSettings({
         </p>
       )}
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={pending}
-          onClick={() => act(() => regenerateShareAction(share.id))}
-        >
-          <RefreshCw aria-hidden /> New link
-        </Button>
+        {canRegenerate && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={pending}
+            onClick={() => act(() => regenerateShareAction(share.id))}
+          >
+            <RefreshCw aria-hidden /> New link
+          </Button>
+        )}
         <Button
           type="button"
           variant="destructive"
@@ -145,8 +150,9 @@ export function LinkSettings({
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        A new link replaces this one; the old link stops working immediately. Turning a link off is
-        permanent for that link.
+        {canRegenerate
+          ? "A new link replaces this one; the old link stops working immediately. Turning a link off is permanent for that link."
+          : "Turning the link off hides your portfolio. Your custom address stays yours and works again when you turn it back on."}
       </p>
     </div>
   );
@@ -160,10 +166,12 @@ export function ShareLinkControls({
   share,
   title,
   onChange,
+  canRegenerate,
 }: {
   share: ShareView;
   title: string;
   onChange: (share: ShareView | null) => void;
+  canRegenerate?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -173,7 +181,7 @@ export function ShareLinkControls({
         <ShareButtons url={share.url} title={title} />
         <p className="text-xs text-muted-foreground">{CACHE_NOTE}</p>
       </div>
-      <LinkSettings share={share} onChange={onChange} />
+      <LinkSettings share={share} onChange={onChange} canRegenerate={canRegenerate} />
     </div>
   );
 }

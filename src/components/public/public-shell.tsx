@@ -30,7 +30,6 @@ export function PublicShell({
         <p>
           {sharedBy && <>Credentials shared by {sharedBy} · </>}Powered by CertNest
         </p>
-        <p>Details are provided by the earner. Use the issuer’s link to verify a credential.</p>
       </footer>
     </>
   );

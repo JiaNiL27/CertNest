@@ -10,8 +10,7 @@ import { EmptyState } from "@/components/certnest/empty-state";
 import { todayUtc } from "@/lib/certificates/display";
 import { getDashboardData } from "@/lib/certificates/queries";
 import { initials } from "@/lib/format";
-import { getPortfolioShare } from "@/lib/sharing/service";
-import { portfolioPath } from "@/lib/sharing/urls";
+import { getPortfolioHomePath } from "@/lib/sharing/service";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Dashboard · CertNest" };
@@ -32,9 +31,9 @@ async function DashboardContent() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ displayName, certificateCount, recent, skills }, portfolio] = await Promise.all([
+  const [{ displayName, certificateCount, recent, skills }, portfolioHome] = await Promise.all([
     getDashboardData(supabase, user.id),
-    getPortfolioShare(supabase),
+    getPortfolioHomePath(supabase),
   ]);
   const today = todayUtc();
 
@@ -66,9 +65,9 @@ async function DashboardContent() {
               <Link href="/settings/sharing" className="flex items-center gap-1.5">
                 <Pencil className="size-4" aria-hidden /> Edit profile
               </Link>
-              {portfolio ? (
+              {portfolioHome ? (
                 <a
-                  href={portfolioPath(portfolio.public_slug)}
+                  href={portfolioHome}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5"

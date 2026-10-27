@@ -2,6 +2,31 @@
 // client components can use them with an absolute base URL from the server.
 
 export const portfolioPath = (slug: string) => `/p/${slug}`;
+export const handlePath = (handle: string) => `/u/${handle}`;
+
+/** Where a public portfolio's pages live: random link (/p) or custom address (/u). */
+export type PortfolioPaths = {
+  home: string;
+  skills: string;
+  /** Badge detail URL is `${badgeBase}/${publicId}`. */
+  badgeBase: string;
+  /** Badge image URL is `${imageBase}/${key}`. */
+  imageBase: string;
+  og: string;
+};
+
+export function portfolioPaths(
+  source: { kind: "slug"; slug: string } | { kind: "handle"; handle: string },
+): PortfolioPaths {
+  const home = source.kind === "slug" ? portfolioPath(source.slug) : handlePath(source.handle);
+  return {
+    home,
+    skills: `${home}/skills`,
+    badgeBase: source.kind === "slug" ? home : `${home}/badges`,
+    imageBase: `${home}/img`,
+    og: `${home}/og`,
+  };
+}
 export const portfolioBadgePath = (slug: string, publicId: string) => `/p/${slug}/${publicId}`;
 export const badgePath = (slug: string) => `/b/${slug}`;
 export const publicImagePath = (scope: "p" | "b", slug: string, key: string) =>

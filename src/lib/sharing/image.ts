@@ -4,6 +4,8 @@ import { BUCKET } from "@/lib/files/service";
 import { detectFileType } from "@/lib/files/detect";
 
 const SLUG = /^[0-9A-Za-z]{22}$/;
+const KEY = /^[0-9A-Za-z]{22}$/;
+const HANDLE = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/;
 
 const notFound = () =>
   new Response("Not found", {
@@ -12,18 +14,13 @@ const notFound = () =>
   });
 
 /**
- * Streams a public badge image. The service role is used only to call
- * resolve_public_image (which checks the share is active, images are allowed
- * and the file is a badge image) and then to read that one object.
+ * Streams a public badge image. The service role is used only to call a
+ * resolve_public_image* function (which checks the share is active, images
+ * are allowed and the file is a badge image) and then to read that one object.
  */
-export async function servePublicImage(slug: string, key: string): Promise<Response> {
-  if (!SLUG.test(slug) || !SLUG.test(key)) return notFound();
-
+async function serve(rpc: string, args: Record<string, string>): Promise<Response> {
   const admin = createAdminClient();
-  const { data: path, error } = await admin.rpc("resolve_public_image", {
-    p_slug: slug,
-    p_key: key,
-  });
+  const { data: path, error } = await admin.rpc(rpc, args);
   if (error || typeof path !== "string" || !path) return notFound();
 
   const { data: blob } = await admin.storage.from(BUCKET).download(path);
@@ -45,4 +42,14 @@ export async function servePublicImage(slug: string, key: string): Promise<Respo
       "X-Robots-Tag": "noindex, nofollow",
     },
   });
+}
+
+export function servePublicImage(slug: string, key: string) {
+  if (!SLUG.test(slug) || !KEY.test(key)) return Promise.resolve(notFound());
+  return serve("resolve_public_image", { p_slug: slug, p_key: key });
+}
+
+export function servePublicImageByHandle(handle: string, key: string) {
+  if (!HANDLE.test(handle) || !KEY.test(key)) return Promise.resolve(notFound());
+  return serve("resolve_public_image_by_handle", { p_handle: handle, p_key: key });
 }

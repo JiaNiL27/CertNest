@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["sharp"],
   // Public share pages are reachable by link only: never indexed, never cached.
   async headers() {
-    return ["/p/:path*", "/b/:path*"].map((source) => ({
+    return ["/p/:path*", "/b/:path*", "/u/:path*"].map((source) => ({
       source,
       headers: [
         { key: "X-Robots-Tag", value: "noindex, nofollow" },

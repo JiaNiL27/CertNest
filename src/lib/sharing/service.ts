@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { randomBase62 } from "@/lib/random";
+import { handlePath, portfolioPath } from "./urls";
 
 // Owner-side share management. Every call uses the caller's own client, so
 // RLS limits it to their shares; the DB trigger makes shares revoke-only.
@@ -186,6 +187,37 @@ export async function updateShareOptions(
   if (error) throw new SharingError("failed", "Your settings could not be saved. Please try again.");
   if (!data?.length) throw new SharingError("not_found", "Not found.");
   return data[0] as Share;
+}
+
+/**
+ * Where "View public portfolio" should point: the custom address when one is
+ * set, otherwise the random link. Null while the portfolio is off.
+ */
+export async function getPortfolioHomePath(supabase: SupabaseClient): Promise<string | null> {
+  const [share, handle] = await Promise.all([getPortfolioShare(supabase), getHandle(supabase)]);
+  if (!share) return null;
+  return handle ? handlePath(handle) : portfolioPath(share.public_slug);
+}
+
+export async function getHandle(supabase: SupabaseClient): Promise<string | null> {
+  const userId = await requireUserId(supabase);
+  const { data } = await supabase.from("profiles").select("handle").eq("id", userId).maybeSingle();
+  return (data?.handle as string | null) ?? null;
+}
+
+/** Sets (or clears with null) the custom /u/{handle} address. */
+export async function setHandle(supabase: SupabaseClient, handle: string | null) {
+  const userId = await requireUserId(supabase);
+  const { error } = await supabase.from("profiles").update({ handle }).eq("id", userId);
+  if (!error) return;
+  // 23505: taken by someone else, or reserved for its previous owner.
+  if (error.code === "23505") {
+    throw new SharingError("failed", "That address is already taken. Please choose another.");
+  }
+  if (error.code === "23514") {
+    throw new SharingError("failed", "That address isn't allowed. Please choose another.");
+  }
+  throw new SharingError("failed", "Your address could not be saved. Please try again.");
 }
 
 export async function updateDisplayName(supabase: SupabaseClient, displayName: string) {

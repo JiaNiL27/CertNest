@@ -11,6 +11,7 @@ import {
   disableShareAction,
   enablePortfolioAction,
   updateDisplayNameAction,
+  updateHandleAction,
   type ShareView,
 } from "@/app/(app)/settings/sharing/actions";
 import { ShareLinkControls } from "./share-link-controls";
@@ -70,18 +71,34 @@ function DisplayNameForm({ initial }: { initial: string }) {
   );
 }
 
-function PortfolioSection({ initial }: { initial: ShareView | null }) {
+// One portfolio, one link: the custom address when set, otherwise the random
+// link. Setting an address turns the random link off; removing the address
+// issues a new random link (the DB trigger does both).
+function PortfolioSection({
+  initial,
+  initialHandle,
+  siteUrl,
+}: {
+  initial: ShareView | null;
+  initialHandle: string | null;
+  siteUrl: string;
+}) {
   const [share, setShare] = useState(initial);
+  const [handle, setHandle] = useState(initialHandle);
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
+  const shown = share && handle ? { ...share, url: `${siteUrl}/u/${handle}` } : share;
 
   return (
     <Section
       title="Public portfolio"
       description="One read-only page with all your badges, except the ones you hide from your portfolio."
     >
-      {share ? (
-        <ShareLinkControls share={share} title="my badges" onChange={setShare} />
+      {shown ? (
+        <>
+          <p className="text-sm font-medium">Your link</p>
+          <ShareLinkControls share={shown} title="my badges" onChange={setShare} canRegenerate={!handle} />
+        </>
       ) : (
         <div className="flex flex-col items-start gap-3">
           <p className="text-sm text-muted-foreground">Your portfolio is off. Nobody can see it.</p>
@@ -107,7 +124,102 @@ function PortfolioSection({ initial }: { initial: ShareView | null }) {
           {error}
         </p>
       )}
+      <CustomAddressForm
+        saved={handle}
+        siteUrl={siteUrl}
+        onSaved={(next, portfolio) => {
+          setHandle(next);
+          setShare(portfolio);
+        }}
+      />
     </Section>
+  );
+}
+
+// Optional, readable /u/{handle} address that replaces the random link.
+function CustomAddressForm({
+  saved,
+  siteUrl,
+  onSaved,
+}: {
+  saved: string | null;
+  siteUrl: string;
+  onSaved: (handle: string | null, portfolio: ShareView | null) => void;
+}) {
+  const [value, setValue] = useState(saved ?? "");
+  const [message, setMessage] = useState<{ ok: boolean; text: string }>();
+  const [pending, startTransition] = useTransition();
+  const prefix = `${siteUrl.replace(/^https?:\/\//, "")}/u/`;
+
+  function save(next: string | null) {
+    setMessage(undefined);
+    startTransition(async () => {
+      const result = await updateHandleAction(next);
+      if (!result.ok) return setMessage({ ok: false, text: result.error });
+      onSaved(result.data.handle, result.data.portfolio);
+      setValue(result.data.handle ?? "");
+      setMessage({
+        ok: true,
+        text: result.data.handle ? "Address saved." : "Custom address removed. You have a new random link.",
+      });
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-3 border-t pt-4">
+      <div>
+        <h3 className="font-sans text-base font-semibold">Custom address (optional)</h3>
+        <p className="text-sm text-muted-foreground">
+          A short, readable address, like on a resume. It replaces your random link, which stops
+          working. If you remove it, you get a new random link.
+        </p>
+      </div>
+      <p className="rounded-lg bg-muted p-3 text-sm">
+        Anyone who knows or guesses this address can see your portfolio while it’s on. If you
+        change or remove it, the old address stays reserved for you for 90 days.
+      </p>
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save(value);
+        }}
+      >
+        <Label htmlFor="handle">Address</Label>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center rounded-lg border focus-within:ring-3 focus-within:ring-ring/50 sm:max-w-md">
+            <span className="hidden shrink-0 pl-3 text-sm text-muted-foreground sm:inline">{prefix}</span>
+            <input
+              id="handle"
+              value={value}
+              onChange={(e) => setValue(e.target.value.toLowerCase())}
+              maxLength={30}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="your-name"
+              aria-describedby="handle-hint"
+              className="h-9 min-w-0 flex-1 bg-transparent px-2 text-sm outline-none"
+            />
+          </div>
+          <Button type="submit" disabled={pending || !value.trim() || value === saved}>
+            {pending ? "Saving…" : "Save"}
+          </Button>
+          {saved && (
+            <Button type="button" variant="outline" disabled={pending} onClick={() => save(null)}>
+              Remove
+            </Button>
+          )}
+        </div>
+        <p id="handle-hint" className="text-xs text-muted-foreground">
+          3–30 characters: lowercase letters, numbers and hyphens.
+        </p>
+        {message && (
+          <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-primary" : "text-destructive"}`}>
+            {message.text}
+          </p>
+        )}
+      </form>
+    </div>
   );
 }
 
@@ -169,17 +281,21 @@ export function SharingSettings({
   displayName,
   portfolio,
   badgeShares,
+  handle,
+  siteUrl,
 }: {
   displayName: string;
   portfolio: ShareView | null;
   badgeShares: BadgeShare[];
+  handle: string | null;
+  siteUrl: string;
 }) {
   return (
     <div className="flex flex-col gap-6">
       <Section title="Profile" description="How you appear to people you share with.">
         <DisplayNameForm initial={displayName} />
       </Section>
-      <PortfolioSection initial={portfolio} />
+      <PortfolioSection initial={portfolio} initialHandle={handle} siteUrl={siteUrl} />
       <BadgeLinksSection initial={badgeShares} />
     </div>
   );

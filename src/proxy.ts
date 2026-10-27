@@ -22,7 +22,7 @@ export async function proxy(request: NextRequest) {
 
   // Public share pages never use the visitor's session. Invalid links get a
   // real 404 here, before the page starts streaming.
-  if (pathname.startsWith("/p/") || pathname.startsWith("/b/")) {
+  if (pathname.startsWith("/p/") || pathname.startsWith("/b/") || pathname.startsWith("/u/")) {
     if ((await checkPublicLink(pathname)) === "invalid") {
       return NextResponse.rewrite(new URL("/link-unavailable", request.url), { status: 404 });
     }

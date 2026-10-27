@@ -10,6 +10,7 @@ let user: E2EUser;
 let certificateId: string;
 let publicId: string;
 let slug: string;
+let handle: string;
 
 test.beforeAll(async () => {
   user = await createUser("resp");
@@ -31,6 +32,7 @@ test.beforeAll(async () => {
   publicId = data.public_id;
 
   slug = randomSlug();
+  handle = `resp-${user.id.slice(0, 8)}`;
   const share = await admin
     .from("shares")
     .insert({ user_id: user.id, scope: "portfolio", public_slug: slug });
@@ -91,4 +93,17 @@ test("no sideways scrolling on phones", async ({ page, isMobile }) => {
   await page.goto(`/p/${slug}/${publicId}`);
   await expect(page.getByRole("heading", { name: LONG_TITLE })).toBeVisible();
   await expectNoSideScroll(page, "public-badge");
+
+  // Same pages through a custom address.
+  await page.goto("/settings/sharing");
+  await page.getByLabel("Address").fill(handle);
+  await page.getByRole("button", { name: "Save", exact: true }).last().click();
+  await expect(page.getByText("Address saved.")).toBeVisible();
+  await expectNoSideScroll(page, "settings-with-address");
+  await page.goto(`/u/${handle}/skills`);
+  await expect(page.getByRole("tab", { name: /Skills Wallet/ })).toHaveAttribute("aria-selected", "true");
+  await expectNoSideScroll(page, "custom-address-skills");
+  await page.goto(`/u/${handle}/badges/${publicId}`);
+  await expect(page.getByRole("heading", { name: LONG_TITLE })).toBeVisible();
+  await expectNoSideScroll(page, "custom-address-badge");
 });

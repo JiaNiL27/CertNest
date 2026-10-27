@@ -2,7 +2,12 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CertificateDetail } from "@/lib/certificates/queries";
 import { getSiteUrl } from "@/lib/site-url";
-import { getCertificateShare, getPortfolioShare, type Share, type ShareOptions } from "./service";
+import {
+  getCertificateShare,
+  getPortfolioHomePath,
+  type Share,
+  type ShareOptions,
+} from "./service";
 import { badgePath, portfolioPath } from "./urls";
 
 export type ShareView = ShareOptions & { id: string; url: string };
@@ -41,9 +46,9 @@ export async function loadShareBadgeState(
   supabase: SupabaseClient,
   certificate: CertificateDetail,
 ): Promise<ShareBadgeState> {
-  const [share, portfolio] = await Promise.all([
+  const [share, portfolioHome] = await Promise.all([
     getCertificateShare(supabase, certificate.id),
-    getPortfolioShare(supabase),
+    getPortfolioHomePath(supabase),
   ]);
   return {
     share: share ? toShareView(share) : null,
@@ -58,6 +63,6 @@ export async function loadShareBadgeState(
       badgeFileId: certificate.badge?.id ?? null,
       originalFileId: certificate.original?.id ?? null,
     },
-    portfolioUrl: portfolio ? `${getSiteUrl()}${portfolioPath(portfolio.public_slug)}` : null,
+    portfolioUrl: portfolioHome ? `${getSiteUrl()}${portfolioHome}` : null,
   };
 }

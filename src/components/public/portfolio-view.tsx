@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Award, Building2, ChevronDown, Search, SearchX, Sparkles, X } from "lucide-react";
 import { cn } from "cn";
 import { expirationState } from "@/lib/certificates/display";
 import type { PublicCertificate } from "@/lib/sharing/public";
+import type { PortfolioPaths } from "@/lib/sharing/urls";
 import { EmptyState } from "@/components/certnest/empty-state";
 import { PublicBadgeCard } from "./public-badge-card";
 import { SkillsWallet } from "./skills-wallet";
@@ -39,15 +40,32 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
 // Visitor portfolio: centered wallet tabs, search, sort, issuer and skill
 // filters. All filtering happens in the browser on already-public data.
 export function PortfolioView({
-  slug,
+  paths,
+  initialTab = "badges",
   certificates,
   today,
 }: {
-  slug: string;
+  paths: PortfolioPaths;
+  /** Which wallet the URL points at (/…/skills opens the Skills Wallet). */
+  initialTab?: Tab;
   certificates: PublicCertificate[];
   today: string;
 }) {
-  const [tab, setTab] = useState<Tab>("badges");
+  const [tab, setTabState] = useState<Tab>(initialTab);
+
+  // Each wallet has its own URL. Switching tabs updates the address without a
+  // reload; Back/Forward switch tabs too.
+  function setTab(next: Tab) {
+    setTabState(next);
+    const url = next === "skills" ? paths.skills : paths.home;
+    if (window.location.pathname !== url) window.history.pushState(null, "", url);
+  }
+  useEffect(() => {
+    const onPop = () =>
+      setTabState(window.location.pathname === paths.skills ? "skills" : "badges");
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [paths.skills]);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("newest");
   const [issuer, setIssuer] = useState<string | null>(null);
@@ -196,7 +214,7 @@ export function PortfolioView({
               {active.length > 0 && (
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {active.map((c) => (
-                    <PublicBadgeCard key={c.public_id} certificate={c} slug={slug} today={today} />
+                    <PublicBadgeCard key={c.public_id} certificate={c} paths={paths} today={today} />
                   ))}
                 </div>
               )}
@@ -217,7 +235,7 @@ export function PortfolioView({
                   {showExpired && (
                     <div className="grid gap-5 opacity-80 sm:grid-cols-2 lg:grid-cols-3">
                       {expired.map((c) => (
-                        <PublicBadgeCard key={c.public_id} certificate={c} slug={slug} today={today} />
+                        <PublicBadgeCard key={c.public_id} certificate={c} paths={paths} today={today} />
                       ))}
                     </div>
                   )}
@@ -228,7 +246,7 @@ export function PortfolioView({
         </div>
       ) : (
         <div role="tabpanel" aria-label="Skills Wallet">
-          <SkillsWallet slug={slug} certificates={certificates} onShowBadges={showSkill} />
+          <SkillsWallet paths={paths} certificates={certificates} onShowBadges={showSkill} />
         </div>
       )}
     </div>

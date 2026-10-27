@@ -140,7 +140,12 @@ describe("proxy", () => {
     const get = (path: string) => fetch(`${BASE}${path}`, { redirect: "manual" });
 
     it("serves portfolio and badge pages without a session, without private data", async () => {
-      for (const path of [`/p/${portfolio.public_slug}`, `/p/${portfolio.public_slug}/${publicId}`, `/b/${badge.public_slug}`]) {
+      for (const path of [
+        `/p/${portfolio.public_slug}`,
+        `/p/${portfolio.public_slug}/skills`,
+        `/p/${portfolio.public_slug}/${publicId}`,
+        `/b/${badge.public_slug}`,
+      ]) {
         const res = await get(path);
         expect(res.status, path).toBe(200);
         expect(res.headers.get("x-robots-tag"), path).toContain("noindex");
@@ -159,6 +164,10 @@ describe("proxy", () => {
         `/b/${randomSlug()}`,
         `/p/${portfolio.public_slug}/${"0".repeat(32)}`,
         `/p/not-a-slug`,
+        `/p/${portfolio.public_slug}/skills/extra`,
+        `/u/nobody-has-this-${randomSlug().toLowerCase().slice(0, 8)}`,
+        `/u/Bad_Name`,
+        `/u/admin`,
       ]) {
         const res = await get(path);
         expect(res.status, path).toBe(404);

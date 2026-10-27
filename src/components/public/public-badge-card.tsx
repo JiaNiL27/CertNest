@@ -5,19 +5,19 @@ import { StatusBadges } from "@/components/certnest/status-badges";
 import { expirationState } from "@/lib/certificates/display";
 import { formatMonthYear } from "@/lib/format";
 import type { PublicCertificate } from "@/lib/sharing/public";
-import { portfolioBadgePath, publicImagePath } from "@/lib/sharing/urls";
+import type { PortfolioPaths } from "@/lib/sharing/urls";
 
 // Visitor's badge card. Links only to the public detail page.
 export function PublicBadgeCard({
   certificate: c,
-  slug,
+  paths,
   today,
 }: {
   certificate: PublicCertificate;
-  slug: string;
+  paths: PortfolioPaths;
   today: string;
 }) {
-  const href = portfolioBadgePath(slug, c.public_id);
+  const href = `${paths.badgeBase}/${c.public_id}`;
   const state = expirationState(c, today);
 
   return (
@@ -25,7 +25,7 @@ export function PublicBadgeCard({
       <Link href={href} tabIndex={-1} aria-hidden className="transition-transform duration-200 group-hover:scale-[1.03]">
         <BadgeIcon
           issuer={c.issuer_name}
-          imageSrc={c.image_key ? publicImagePath("p", slug, c.image_key) : null}
+          imageSrc={c.image_key ? `${paths.imageBase}/${c.image_key}` : null}
           className="size-32 [&>div]:text-5xl"
         />
       </Link>

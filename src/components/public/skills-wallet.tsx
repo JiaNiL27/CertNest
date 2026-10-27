@@ -8,7 +8,7 @@ import { BadgeIcon } from "@/components/certnest/badge-icon";
 import { EmptyState } from "@/components/certnest/empty-state";
 import { formatMonthYear } from "@/lib/format";
 import type { PublicCertificate } from "@/lib/sharing/public";
-import { portfolioBadgePath, publicImagePath } from "@/lib/sharing/urls";
+import type { PortfolioPaths } from "@/lib/sharing/urls";
 
 type Sort = "badges" | "recent" | "name";
 const SORTS: { value: Sort; label: string }[] = [
@@ -23,11 +23,11 @@ type SkillRow = { name: string; badges: PublicCertificate[]; newest: number };
 // Skills as an aligned, searchable list. Each row expands to the badges that
 // provide evidence for the skill (newest first, 5 at a time).
 export function SkillsWallet({
-  slug,
+  paths,
   certificates,
   onShowBadges,
 }: {
-  slug: string;
+  paths: PortfolioPaths;
   certificates: PublicCertificate[];
   onShowBadges: (skill: string) => void;
 }) {
@@ -142,12 +142,12 @@ export function SkillsWallet({
                     {visible.map((c) => (
                       <Link
                         key={c.public_id}
-                        href={portfolioBadgePath(slug, c.public_id)}
+                        href={`${paths.badgeBase}/${c.public_id}`}
                         className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-background"
                       >
                         <BadgeIcon
                           issuer={c.issuer_name}
-                          imageSrc={c.image_key ? publicImagePath("p", slug, c.image_key) : null}
+                          imageSrc={c.image_key ? `${paths.imageBase}/${c.image_key}` : null}
                           className="size-10 rounded [&>div]:text-base"
                         />
                         <span className="min-w-0 flex-1">

@@ -42,6 +42,20 @@ export const getPublicPortfolio = cache(async (slug: string): Promise<PublicPort
   return (data as PublicPortfolio | null) ?? null;
 });
 
+const HANDLE = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/;
+
+/** Same whitelisted data as getPublicPortfolio, looked up by custom address. */
+export const getPublicPortfolioByHandle = cache(
+  async (handle: string): Promise<PublicPortfolio | null> => {
+    if (!HANDLE.test(handle)) return null;
+    const { data, error } = await publicClient().rpc("get_public_portfolio_by_handle", {
+      p_handle: handle,
+    });
+    if (error) throw error;
+    return (data as PublicPortfolio | null) ?? null;
+  },
+);
+
 export const getPublicBadge = cache(async (slug: string): Promise<PublicBadge | null> => {
   if (!SLUG.test(slug)) return null;
   const { data, error } = await publicClient().rpc("get_public_certificate", { p_slug: slug });

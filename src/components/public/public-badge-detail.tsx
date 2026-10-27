@@ -1,14 +1,15 @@
-import { ExternalLink } from "lucide-react";
 import { BadgeIcon } from "@/components/certnest/badge-icon";
 import { ExpandableText } from "@/components/certnest/expandable-text";
 import { StatusBadges } from "@/components/certnest/status-badges";
-import { expirationState, hasIssuerLink } from "@/lib/certificates/display";
+import { expirationState } from "@/lib/certificates/display";
 import { formatDate } from "@/lib/format";
 import type { PublicCertificate } from "@/lib/sharing/public";
 
 // Public, read-only badge view. Only renders fields returned by the public
 // functions; there is no download, edit or owner information here. Unlike
-// the owner's view, empty sections are left out instead of "Not provided".
+// the owner's view, empty sections are left out instead of "Not provided",
+// and there is no issuer link or "Issuer link available" tag (owner's choice,
+// 2026-10-28).
 export function PublicBadgeDetail({
   certificate: c,
   earnedBy,
@@ -20,8 +21,6 @@ export function PublicBadgeDetail({
   imageSrc: string | null;
   today: string;
 }) {
-  const issuerLink = hasIssuerLink(c);
-
   return (
     <article className="grid gap-8 md:grid-cols-[18rem_1fr] md:gap-10">
       <div className="flex justify-center md:justify-start">
@@ -42,21 +41,10 @@ export function PublicBadgeDetail({
             Earned by <span className="font-medium text-foreground">{earnedBy}</span>
             {c.issued_at && <> · Issued {formatDate(c.issued_at)}</>}
           </p>
-          <StatusBadges state={expirationState(c, today)} issuerLink={issuerLink} className="mt-1" />
+          <StatusBadges state={expirationState(c, today)} issuerLink={false} className="mt-1" />
         </header>
 
         {c.description && <ExpandableText text={c.description} />}
-
-        {issuerLink && (
-          <a
-            href={c.credential_url!}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-fit items-center gap-1.5 font-medium text-primary underline underline-offset-4"
-          >
-            Verify on issuer site <ExternalLink className="size-4" aria-hidden />
-          </a>
-        )}
 
         {c.skills.length > 0 && (
           <section className="flex flex-col gap-3">

@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { getCertificate } from "@/lib/certificates/queries";
+import { handleProblem, normalizeHandle } from "@/lib/sharing/handle";
 import { loadShareBadgeState, toShareView, type ShareView } from "@/lib/sharing/badge-state";
 import {
   SharingError,
@@ -10,6 +11,7 @@ import {
   enablePortfolio,
   getPortfolioShare,
   regenerateShare,
+  setHandle,
   updateDisplayName,
   updateShareOptions,
   type ShareOptions,
@@ -65,6 +67,25 @@ export async function updateShareOptionsAction(shareId: string, input: ShareOpti
   const parsed = options.safeParse(input);
   if (!parsed.success) return { ok: false, error: GENERIC_ERROR } as Result<ShareView>;
   return run(async (supabase) => toShareView(await updateShareOptions(supabase, shareId, parsed.data)));
+}
+
+type HandleResult = { handle: string | null; portfolio: ShareView | null };
+
+/**
+ * Sets or clears the custom portfolio address. Returns the saved handle and
+ * the portfolio link, which is new after a removal (the DB trigger issues it).
+ */
+export async function updateHandleAction(raw: string | null) {
+  const handle = raw === null ? null : normalizeHandle(raw);
+  if (handle !== null) {
+    const problem = handleProblem(handle);
+    if (problem) return { ok: false, error: problem } as Result<HandleResult>;
+  }
+  return run(async (supabase): Promise<HandleResult> => {
+    await setHandle(supabase, handle);
+    const share = await getPortfolioShare(supabase);
+    return { handle, portfolio: share && toShareView(share) };
+  });
 }
 
 export async function updateDisplayNameAction(displayName: string) {

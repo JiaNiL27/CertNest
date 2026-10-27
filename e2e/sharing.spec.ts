@@ -60,10 +60,10 @@ test("portfolio: turn on, view as a visitor, turn off", async ({ page, browser }
   await expect(pub.getByRole("heading", { name: "E2E Public Badge" })).toBeVisible();
   // The title updates after client-side navigation; wait for it.
   await expect(pub).toHaveTitle("E2E Public Badge · CertNest");
-  await expect(pub.getByRole("link", { name: /Verify on issuer site/ })).toHaveAttribute(
-    "rel",
-    "noopener noreferrer",
-  );
+  // Any link out to the issuer opens safely.
+  for (const link of await pub.locator('a[href^="https://example.com"]').all()) {
+    await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  }
   await expectAccessible(pub, "public badge page");
 
   // Turning the link off makes it invalid immediately.
@@ -72,6 +72,74 @@ test("portfolio: turn on, view as a visitor, turn off", async ({ page, browser }
   const gone = await pub.goto(link);
   expect(gone?.status()).toBe(404);
   await expect(pub.getByText("This link is invalid or no longer active")).toBeVisible();
+  await visitor.close();
+});
+
+test("custom address: set it, visit as a visitor, wallets have their own URLs", async ({
+  page,
+  browser,
+}) => {
+  const handle = `e2e-${user.id.slice(0, 8)}`;
+  await signIn(page, user);
+  await page.goto("/settings/sharing");
+  await page.getByRole("button", { name: "Turn on public portfolio" }).click();
+  const randomLink = await page.getByLabel("Public link").inputValue();
+
+  await page.getByLabel("Address").fill("Bad_Name");
+  await page.getByRole("button", { name: "Save", exact: true }).last().click();
+  await expect(page.getByText("Use only lowercase letters, numbers and hyphens.")).toBeVisible();
+  await page.getByLabel("Address").fill(handle);
+  await page.getByRole("button", { name: "Save", exact: true }).last().click();
+  await expect(page.getByText("Address saved.")).toBeVisible();
+  // One link: the custom address replaces the random one.
+  await expect(page.getByLabel("Public link")).toHaveValue(new RegExp(`/u/${handle}$`));
+  await expect(page.getByRole("button", { name: "New link" })).toHaveCount(0);
+
+  const visitor = await browser.newContext();
+  const pub = await visitor.newPage();
+  expect((await pub.goto(randomLink))?.status()).toBe(404);
+  await pub.goto(`/u/${handle}`);
+  await expect(pub.getByRole("heading", { level: 1, name: user.displayName })).toBeVisible();
+  await expect(pub.getByText("E2E Public Badge")).toBeVisible();
+  await expect(pub.getByText("E2E Hidden Badge")).toHaveCount(0);
+  const html = await pub.content();
+  expect(html).not.toMatch(/\/p\/[0-9A-Za-z]{22}/); // the random link isn't revealed
+  await expectAccessible(pub, "custom address portfolio");
+
+  // Wallet tabs change the URL, and Back switches tabs.
+  await pub.getByRole("tab", { name: /Skills Wallet/ }).click();
+  await expect(pub).toHaveURL(new RegExp(`/u/${handle}/skills$`));
+  await pub.goBack();
+  await expect(pub).toHaveURL(new RegExp(`/u/${handle}$`));
+  await expect(pub.getByRole("tab", { name: /Badge Wallet/ })).toHaveAttribute("aria-selected", "true");
+  await pub.goto(`/u/${handle}/skills`);
+  await expect(pub.getByRole("tab", { name: /Skills Wallet/ })).toHaveAttribute("aria-selected", "true");
+
+  await pub.goto(`/u/${handle}`);
+  await pub.getByRole("link", { name: "View credential" }).click();
+  await expect(pub).toHaveURL(new RegExp(`/u/${handle}/badges/[0-9a-f]{32}$`));
+  await expect(pub.getByRole("heading", { name: "E2E Public Badge" })).toBeVisible();
+
+  // Removing the address gives a new random link; the old one stays dead.
+  await page.getByRole("button", { name: "Remove" }).click();
+  await expect(page.getByText("Custom address removed. You have a new random link.")).toBeVisible();
+  const newLink = await page.getByLabel("Public link").inputValue();
+  expect(newLink).toMatch(/\/p\/[0-9A-Za-z]{22}$/);
+  expect(newLink).not.toBe(randomLink);
+  await expect(page.getByRole("button", { name: "New link" })).toBeVisible();
+  expect((await pub.goto(`/u/${handle}`))?.status()).toBe(404);
+  expect((await pub.goto(randomLink))?.status()).toBe(404);
+  expect((await pub.goto(newLink))?.status()).toBe(200);
+
+  // Back on the custom address, turning the portfolio off disables it.
+  await page.getByLabel("Address").fill(handle);
+  await page.getByRole("button", { name: "Save", exact: true }).last().click();
+  await expect(page.getByText("Address saved.")).toBeVisible();
+  expect((await pub.goto(`/u/${handle}`))?.status()).toBe(200);
+  await page.getByRole("button", { name: "Turn off link" }).click();
+  await expect(page.getByRole("button", { name: "Turn on public portfolio" })).toBeVisible();
+  expect((await pub.goto(`/u/${handle}`))?.status()).toBe(404);
+  expect((await pub.goto(`/u/${handle}/skills`))?.status()).toBe(404);
   await visitor.close();
 });
 
