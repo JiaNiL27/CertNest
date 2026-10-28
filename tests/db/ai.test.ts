@@ -71,6 +71,30 @@ describe("AI hourly quota", () => {
     expect(await remaining(b)).toBe(0);
   });
 
+  it("Fill from file, Suggest with AI and post drafts share one limit; unknown features are refused", async () => {
+    const c = await createTestUser("c");
+    try {
+      for (let i = 0; i < 4; i++) {
+        expect((await c.client.rpc("consume_ai_quota", { p_feature: "file_extract" })).data).toBeTruthy();
+        expect((await consume(c)).data).toBeTruthy();
+      }
+      for (let i = 0; i < 2; i++) {
+        expect((await c.client.rpc("consume_ai_quota", { p_feature: "draft_fields" })).data).toBeTruthy();
+      }
+      expect(await remaining(c)).toBe(0);
+      expect((await c.client.rpc("consume_ai_quota", { p_feature: "file_extract" })).data).toBeNull();
+      const other = await createTestUser("d");
+      try {
+        expect((await other.client.rpc("consume_ai_quota", { p_feature: "anything" })).error).not.toBeNull();
+        expect(await remaining(other)).toBe(10);
+      } finally {
+        await deleteTestUser(other);
+      }
+    } finally {
+      await deleteTestUser(c);
+    }
+  });
+
   it("other users and anon can't see AI history or use the quota", async () => {
     const { data } = await b.client.from("ai_requests").select("id").eq("user_id", a.id);
     expect(data ?? []).toHaveLength(0);

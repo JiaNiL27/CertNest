@@ -18,6 +18,13 @@ export async function getAiPanelState(certificateId: string): Promise<AiPanelSta
   return certificate ? loadAiPanelState(supabase, certificate) : null;
 }
 
+/** AI requests left in the current hour (shared by every AI feature). */
+export async function getAiRemaining(): Promise<number | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("ai_quota_remaining");
+  return error ? null : (data as number);
+}
+
 const saveInput = z.object({
   certificateId: z.uuid(),
   language: languageCode,

@@ -17,3 +17,14 @@ export type GenerateRequest = {
 };
 
 export type TextStream = AsyncIterable<string>;
+
+/** Instructions (and optionally one file) in, one JSON document (as text) out. */
+export type JsonRequest = {
+  system: string;
+  prompt: string;
+  file?: { mime: string; bytes: Uint8Array };
+  /** JSON Schema the answer must follow. */
+  schema: Record<string, unknown>;
+  maxOutputTokens: number;
+  signal?: AbortSignal;
+};

@@ -89,17 +89,37 @@ export function parseCertificateForm(formData: FormData) {
   });
 }
 
-// Fields the user typed in themselves (reserved for future auto-extraction).
-export function fieldSources(input: CertificateInput) {
-  const keys = [
-    "title",
-    "issuer_name",
-    "source_platform",
-    "description",
-    "credential_id",
-    "credential_url",
-    "issued_at",
-    "expires_at",
-  ] as const;
-  return Object.fromEntries(keys.filter((k) => input[k] !== null).map((k) => [k, "user"]));
+const SOURCE_KEYS = [
+  "title",
+  "issuer_name",
+  "source_platform",
+  "description",
+  "credential_id",
+  "credential_url",
+  "issued_at",
+  "expires_at",
+  "skills",
+] as const;
+
+/**
+ * Where each filled-in field came from: "ai_suggested" when it still holds the
+ * value "Fill from file" read from the user's file (`ai_fields`),
+ * "ai_generated" when it still holds text "Suggest with AI" wrote from the
+ * title and issuer (`ai_generated_fields`, description and skills only),
+ * otherwise "user".
+ */
+export function fieldSources(
+  input: CertificateInput,
+  aiFields: string | null = null,
+  aiGeneratedFields: string | null = null,
+) {
+  const ai = new Set((aiFields ?? "").split(","));
+  const generated = new Set<string>(
+    (aiGeneratedFields ?? "").split(",").filter((k) => k === "description" || k === "skills"),
+  );
+  return Object.fromEntries(
+    SOURCE_KEYS.filter((k) => (k === "skills" ? input.skills.length > 0 : input[k] !== null)).map(
+      (k) => [k, generated.has(k) ? "ai_generated" : ai.has(k) ? "ai_suggested" : "user"],
+    ),
+  );
 }

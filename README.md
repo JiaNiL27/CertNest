@@ -94,6 +94,22 @@ saved per language in `generated_contents` (owner-only, never public). Each user
 generations per rolling hour, enforced in the database (`consume_ai_quota`); failures before any
 text is produced are refunded.
 
+**Fill from file:** after choosing a certificate file in the add/edit form, "Fill from file" sends
+it to `POST /api/ai/extract` (multipart `file`; same type/size checks as uploads, images stripped
+of metadata first, nothing stored). The model returns title, issuer, dates, Credential ID, URL and
+skills as JSON; `src/lib/ai/extract.ts` re-checks every value (real dates, `https` only, length
+limits) and drops the rest. Found fields replace what's in the form and are marked "Suggested by
+AI, please check" until edited; `field_sources` records them as `ai_suggested`. Shares the hourly
+limit with post drafts.
+
+**Suggest with AI:** when the description or skills are empty, the form can ask
+`POST /api/ai/draft-fields` (JSON: title, issuer, platform, which fields) to draft them from the
+title and organization only. This is the one place AI writes content that isn't on the certificate:
+it only fills empty fields, the text is marked "Written by AI, not from your certificate" until
+edited, `field_sources` records `ai_generated`, and `src/lib/ai/draft-fields.ts` drops answers
+that claim "verified"/"accredited", are too long, or have too many skills (max 8). Same hourly
+limit.
+
 The provider is chosen with `AI_PROVIDER` (`src/lib/ai/provider.ts`). Development uses the Gemini
 free tier (`GEMINI_API_KEY` from https://aistudio.google.com) — Google may use free-tier prompts,
 so use test data only. The default model is `gemini-flash-lite-latest`, falling back to

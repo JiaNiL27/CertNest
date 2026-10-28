@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   });
   if (quotaError) return json("Something went wrong. Please try again.", 500);
   if (!requestId) {
-    return json("You've used all your AI drafts for this hour. Please try again later.", 429, {
+    return json("You've used all your AI requests for this hour. Please try again later.", 429, {
       "X-AI-Remaining": "0",
     });
   }

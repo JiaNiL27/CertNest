@@ -191,7 +191,7 @@ export function AiPostPanel({
           </Button>
         )}
         <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">
-          {state.remaining} of 10 AI drafts left this hour
+          {state.remaining} of 10 AI requests left this hour
         </span>
       </div>
 

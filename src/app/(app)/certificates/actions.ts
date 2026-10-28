@@ -39,7 +39,14 @@ export async function saveCertificate(
   }
 
   const { skills, ...fields } = parsed.data;
-  const row = { ...fields, field_sources: fieldSources(parsed.data) };
+  const text = (key: string) => {
+    const v = formData.get(key);
+    return typeof v === "string" ? v : null;
+  };
+  const row = {
+    ...fields,
+    field_sources: fieldSources(parsed.data, text("ai_fields"), text("ai_generated_fields")),
+  };
 
   let id = certificateId;
   if (id === null) {

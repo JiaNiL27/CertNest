@@ -12,7 +12,7 @@
 4. 不要新增「M1 执行指令」里列出的技术栈以外的依赖套件，需要的话先问。
 5. 所有密钥只放在服务器端环境变量。`SUPABASE_SERVICE_ROLE_KEY` 和 AI API key 绝对不能有 `NEXT_PUBLIC_` 前缀，也不能被任何 client component import。
 6. 数据库的所有改动都写成 Supabase migration 文件，不要在 dashboard 上手动改。
-7. 不要编造证书资料。字段没有值就留空，由界面显示“未提供”。例外（2026-10-26 确认）：公开详情页只显示有值的部分，缺失的描述、技能直接不显示；公开页不列 Platform、Credential URL 表格，Credential ID 只在开启时显示一行。
+7. 不要编造证书资料。字段没有值就留空，由界面显示“未提供”。例外（2026-10-28 用户决定）：证书上的事实（标题、机构、日期、Credential ID、链接）绝不编造；描述和技能可在用户主动按 "Suggest with AI" 时由 AI 根据标题和机构起草，只填空白字段，标示 "Written by AI, not from your certificate"，`field_sources` 记 `ai_generated`，由用户确认后保存。例外（2026-10-26 确认）：公开详情页只显示有值的部分，缺失的描述、技能直接不显示；公开页不列 Platform、Credential URL 表格，Credential ID 只在开启时显示一行。
 8. 回复要短，不重复我说过的话，也不重复你之前说过的内容。计划用条列，总结只写结果和需要我决定的事，不贴大段代码，除非我要求。
 9. 网站以英文为主：所有界面文字、按钮、错误讯息、空白状态、邮件模板、公开页都用英文，代码、注释、变量名也用英文。AI 生成内容默认英文，用户可以另选语言。这份文件里写的中文界面文字，实现时一律换成对应的英文，例如“未提供”是 Not provided，“此链接无效或已停用”是 This link is invalid or no longer active，Badge Status 用 Issuer link available、Expired、Status unknown，过期日期用 Does not expire 和 Expiration date not provided。
 10. 开发阶段只连接 `certnest-dev` 项目。会删除资料的指令（例如 `supabase db reset --linked`）只能对开发项目执行，而且执行前先问我。
@@ -278,7 +278,7 @@ generated_contents (
 4. **M4 分享：** 公开读取函数、作品集页、单张证书页、图片路由、开关和撤销、访客预览、OG 预览标签，分享到 LinkedIn、X、Facebook、Email。
 5. **M5 AI 贴文：** 生成、编辑、重新生成、复制、保存 LinkedIn 贴文，资料不足时提示，次数上限。
 6. **M6 打磨：** 加载、错误、空白状态，手机版，键盘操作和对比度，Playwright 端到端测试。
-7. **M7 从文件自动填写（2026-10-27 新增）：** 新增证书时上传 PDF 或图片后，用 AI 读出标题、发证机构、日期、Credential ID、证书链接、技能，预填到表单，标示"Suggested by AI, please check"，由用户确认后才保存；`field_sources` 记为 AI 建议；与贴文共用每小时次数上限。只做文件和图片，不做 URL 抓取（SSRF 风险）。前提：已换成付费 AI 供应商（证书原件含全名等个人资料，不能送到会用于训练的免费版）。
+7. **M7 从文件自动填写（2026-10-27 新增）：** 新增或编辑证书时选了 PDF 或图片后，按 "Fill from file" 才把文件送给 AI（不自动送出），读出标题、发证机构、日期、Credential ID、证书链接、技能，填入表单（AI 有读到的字段会覆盖已填内容，读不到的字段保持原样），标示"Suggested by AI, please check"，由用户确认后才保存；`field_sources` 记为 AI 建议；与贴文共用每小时次数上限。只做文件和图片，不做 URL 抓取（SSRF 风险）。这一步不保存文件；图片送出前先去 EXIF。开发阶段（2026-10-28 用户决定）可用 Gemini 免费版，但只能用假证书或已公开的测试文件；上线前必须换成付费 AI 供应商（证书原件含全名等个人资料，不能送到会用于训练的免费版）。
 8. **M8 自订网址（2026-10-28 新增，先于 M7 完成）：** 可选的 `/u/{handle}`（取代随机作品集链接，移除后产生新随机链接），Skills Wallet 独立网址，旧名称保留 90 天；规则见"公开作品集链接"。
 
 ## 上线前清单（2026-10-27 新增）
